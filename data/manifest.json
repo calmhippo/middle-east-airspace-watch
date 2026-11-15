@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-14T15:51:02Z",
+ "generated": "2026-11-15T16:24:02Z",
  "source": "adsb.lol globe_history (ODbL 1.0)",
  "demo": false,
  "grid": {
@@ -888,6 +888,12 @@
    "date": "2026-11-13",
    "legs": 7567,
    "aircraft": 3545,
+   "shards": 4
+  },
+  {
+   "date": "2026-11-14",
+   "legs": 7608,
+   "aircraft": 3568,
    "shards": 4
   }
  ]
