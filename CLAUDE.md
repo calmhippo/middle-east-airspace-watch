@@ -7,7 +7,7 @@ daily. Goal: see which airspace airlines avoid and how routes shift after region
 (Houthi launches from Yemen, Iran/Israel strikes, airspace closures). The project began as
 "flights to/from Doha", so the DOH filter matters.
 
-- Live site: https://jeanturban.github.io/middle-east-airspace-watch/
+- Live site: https://calmhippo.github.io/middle-east-airspace-watch/
 - Owner: Jean-Alexandre (new to GitHub: explain git/GitHub steps in plain words and do them yourself where possible).
 - Demo preview (synthetic data): https://claude.ai/artifact/LesXPA9iqtxpYQQms5V12Q
 - A local copy also exists on his Mac: ~/Documents/Claude Projects/middle-east-airspace-watch (older first version).
