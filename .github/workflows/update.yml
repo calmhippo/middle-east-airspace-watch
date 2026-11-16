@@ -69,16 +69,23 @@ jobs:
         continue-on-error: true
       - name: Commit new days and rebuild manifest
         run: |
-          mkdir -p data/days data/lines
-          cp incoming/days/*.json data/days/ 2>/dev/null || true
-          cp incoming/lines/*.bin data/lines/ 2>/dev/null || true
-          python3 pipeline/update.py manifest
           git config user.name "flight-data-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data
-          git diff --cached --quiet || git commit -m "data: update $(date -u +%F)"
-          git pull --rebase --autostash origin main
-          git push
+          # Start from the newest main, add the new days, rebuild the manifest, push. If someone pushed in the
+          # meantime, start again from their version (the manifest is always rebuilt, so it never needs merging).
+          for attempt in 1 2 3 4; do
+            git fetch origin main && git reset --hard origin/main
+            mkdir -p data/days data/lines
+            cp incoming/days/*.json data/days/ 2>/dev/null || true
+            cp incoming/lines/*.bin data/lines/ 2>/dev/null || true
+            python3 pipeline/update.py manifest
+            git add data
+            git diff --cached --quiet && break
+            git commit -m "data: update $(date -u +%F)"
+            git push origin HEAD:main && break
+            if [ "$attempt" = 4 ]; then echo "push failed 4 times" >&2; exit 1; fi
+            sleep $((attempt * 10))
+          done
       - name: Assemble site
         run: |
           mkdir -p _site

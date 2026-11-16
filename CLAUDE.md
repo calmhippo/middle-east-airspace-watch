@@ -56,7 +56,9 @@ data/                     committed by the workflow: manifest.json, days/*.json,
 ## Workflow
 `plan` → `process` (matrix, one job per day, max-parallel 5)
 (`fetch.sh` to disk, then `cat | process_day.py`; never stream curl straight in: a dropped
-connection plus ignore_zeros silently saved partial days on Nov 8) → `publish` (copies artifacts into data/, `update.py manifest`, `git pull --rebase`, push, deploy to Pages).
+connection plus ignore_zeros silently saved partial days on Nov 8) → `publish` (reset to the newest origin/main, copy
+artifacts into data/, `update.py manifest`, commit, push; up to 4 attempts, so a push by someone else mid-run no longer
+fails with a manifest.json rebase conflict as on Nov 16; then deploy to Pages).
 A day counts as done when both `data/days/<d>.json` and `data/lines/<d>.s0.bin` exist.
 GitHub Pages source = "GitHub Actions" (already set).
 
