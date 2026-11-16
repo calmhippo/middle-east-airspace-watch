@@ -1,4 +1,54 @@
 {
-  "_note": "Curated events shown on the map and timeline. Add entries by hand (or ask Claude to research them). Each needs a source link. type: missile | drone | strike | airspace | other",
-  "events": []
+  "_note": "Curated events shown on the map and timeline. Add entries by hand (or ask Claude to research them). Each needs a source link. type: missile | drone | strike | airspace | other. lat/lon mark the place the event is about (approximate for regions). Researched Nov 16 2026; dates checked against at least one dated report each.",
+  "events": [
+    {
+      "date": "2026-08-30",
+      "lat": 26.86, "lon": 56.36,
+      "type": "strike",
+      "title": "US strikes Iranian rocket launchers on Larak Island, Strait of Hormuz: first US strike on Iran since late July",
+      "url": "https://www.thenationalnews.com/news/us/2026/08/30/us-strikes-iran-near-strait-of-hormuz-in-first-military-action-in-a-month/"
+    },
+    {
+      "date": "2026-08-30",
+      "lat": 31.83, "lon": 36.82,
+      "type": "missile",
+      "title": "Iran fires ballistic missiles at US forces at air bases in Jordan; Jordan says it intercepted eight missiles in its airspace",
+      "url": "https://scmp.com/news/world/middle-east/article/3365782/us-forces-strike-two-iranian-launchers-irans-larak-island-us-official-says"
+    },
+    {
+      "date": "2026-09-18",
+      "lat": 32.0, "lon": 42.5,
+      "type": "airspace",
+      "title": "Iraq returns western airspace (Anbar to Muthanna), reserved for military use since 2016, to civilian air traffic",
+      "url": "https://thenationalnews.com/news/mena/2026/09/19/iraq-lifts-decade-long-restriction-on-civilian-use-of-military-airspace"
+    },
+    {
+      "date": "2026-09-30",
+      "lat": 19.5, "lon": 43.5,
+      "type": "airspace",
+      "title": "EASA advises European airlines to avoid part of Saudi Arabia's Jeddah FIR over Houthi missile and drone attacks (CZIB-2026-09)",
+      "url": "https://migflug.com/afterburner/easa-czib-2026-09-saudi-arabia-jeddah-fir-airspace-warning/"
+    },
+    {
+      "date": "2026-10-10",
+      "lat": 24.96, "lon": 46.70,
+      "type": "missile",
+      "title": "Houthi attack on Riyadh's King Khalid airport kills at least 12; the airport is closed to flights",
+      "url": "https://www.aljazeera.com/news/2026/10/11/attack-on-airport-in-saudi-capital-riyadh-leaves-several-injured"
+    },
+    {
+      "date": "2026-10-15",
+      "lat": 29.3, "lon": 47.6,
+      "type": "airspace",
+      "title": "Kuwait reopens to overflights between the Bahrain and Baghdad FIRs at FL280 and above",
+      "url": "https://ops.group/blog/middle-east-airspace-current-operational-picture/"
+    },
+    {
+      "date": "2026-10-25",
+      "lat": 24.96, "lon": 46.70,
+      "type": "airspace",
+      "title": "Riyadh airport reopens to Saudi airlines after a two-week closure; most foreign airlines stay away",
+      "url": "https://aa.com.tr/en/middle-east/riyadh-airport-partially-resumes-flights-after-houthi-attacks/4100424"
+    }
+  ]
 }

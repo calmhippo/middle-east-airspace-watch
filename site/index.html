@@ -13,7 +13,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--surface); color: var(--text);
     font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  body { display: grid; grid-template-rows: auto auto 1fr auto; height: 100vh; }
+  body { display: grid; grid-template-rows: auto auto 1fr auto; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh; }
   header { padding: 12px 16px 6px; display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
   h1 { font-size: 16px; font-weight: 600; margin: 0; }
   .meta { color: var(--text-3); font-size: 12px; }
@@ -61,15 +61,20 @@
   .tlhead { display: flex; gap: 14px; align-items: center; font-size: 12px; color: var(--text-2); margin-bottom: 2px; flex-wrap: wrap; }
   .key { display: inline-flex; align-items: center; gap: 5px; }
   .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
-  #timeline { width: 100%; height: 86px; display: block; user-select: none; cursor: crosshair; touch-action: none; }
+  .player { display: flex; gap: 10px; align-items: center; }
+  .player .btn { flex: none; width: 96px; padding: 8px 0; }
+  #timeline { flex: 1; min-width: 0; width: 100%; height: 86px; display: block; user-select: none; cursor: pointer; touch-action: none; }
   .hide { display: none !important; }
-  #frame { position: absolute; left: 12px; top: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+  #frame { position: absolute; left: 12px; top: 12px; max-width: min(340px, calc(100% - 64px)); background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
     padding: 6px 12px; font-size: 20px; font-weight: 600; color: var(--text); z-index: 2; font-variant-numeric: tabular-nums; }
   #frame small { display: block; font-size: 11px; font-weight: 400; color: var(--text-3); }
+  #frame .ev { font-size: 12px; font-weight: 400; color: var(--text-2); margin-top: 4px; line-height: 1.35; }
+  #frame .ev a { color: var(--text-3); white-space: nowrap; }
   @media (max-width: 700px) {
     header { padding: 10px 12px 4px; gap: 4px 12px; } .bar { padding: 6px 12px 8px; gap: 8px; }
-    .stat { margin-left: 0; text-align: left; width: 100%; } #brightCtl { display: none; }
-    #frame { font-size: 16px; } footer { padding: 4px 12px 8px; } #timeline { height: 64px; }
+    #frame { font-size: 15px; padding: 5px 10px; } #frame .ev { font-size: 11px; }
+    footer { padding: 4px 12px 8px; } #timeline { height: 64px; } .player .btn { width: 84px; }
+    #airportCtl .lbl, #kEvt { display: none; } .stat { flex: 1 1 auto; }
   }
 </style>
 </head>
@@ -81,14 +86,7 @@
 </header>
 
 <div class="bar">
-  <button class="btn primary" id="play" title="Animate week by week through the whole period">▶ Play weekly</button>
-  <span class="lbl">Range</span>
-  <div class="seg" id="presets">
-    <button data-v="1">1 day</button><button data-v="7">7 days</button><button data-v="30">30 days</button><button data-v="90">All</button>
-  </div>
   <span class="ctl" id="airportCtl"><span class="lbl">Flights</span><select id="airport"><option value="0">All flights</option></select></span>
-  <span class="ctl" id="brightCtl"><span class="lbl">Line width</span><input type="range" id="bright" min="-2" max="2" step="0.1" value="0" aria-label="Line width"></span>
-  <label class="ctl" id="gapCtl" title="Stretches where no receiver heard the aircraft for over 5 minutes are drawn as a straight join between the last and next report. Tick to show them in grey."><input type="checkbox" id="gaps"><span class="lbl">Mark unheard stretches</span></label>
   <div class="stat" id="stat"></div>
 </div>
 
@@ -98,19 +96,20 @@
   <canvas id="top"></canvas>
   <div id="tip"></div>
   <div id="loading">Loading flights…</div>
-  <div id="frame" class="hide"></div>
+  <div id="frame"></div>
   <div id="zoom"><button class="btn" id="zin" aria-label="Zoom in">+</button><button class="btn" id="zout" aria-label="Zoom out">−</button><button class="btn" id="zreset" aria-label="Reset view">⟲</button></div>
   <details id="legend" open><summary>How to read this map</summary><div id="legendBody"></div></details>
 </div>
 
 <footer>
   <div class="tlhead">
-    <span>Flights per day crossing the region. Drag to choose dates.</span>
-    <span class="key" id="kSel"><span class="sw" style="background:var(--blue)"></span>Shown on map</span>
+    <span>Flights per day crossing the region. Tap or drag to pick a week.</span>
     <span class="key hide" id="kEvt"><span style="color:var(--text)">◆</span>Event</span>
-    <span id="rangeTxt" style="margin-left:auto;color:var(--text)"></span>
   </div>
-  <svg id="timeline"></svg>
+  <div class="player">
+    <button class="btn primary" id="play" title="Play week by week through the whole period">▶ Play</button>
+    <svg id="timeline" aria-label="Flights per day; tap or drag to pick a week"></svg>
+  </div>
 </footer>
 
 <script>
@@ -119,7 +118,7 @@ const $ = id => document.getElementById(id);
 const MAX_LINES = 150000;            // above this, a random sample of flights is drawn
 const PLAY_MAX_LINES = 30000;        // ...and this while the animation plays (about half of each week)
 const FRAME_MS = 1500;               // time per week in the animation
-const S = { sel: [0, 0], lineCache: new Map(), zoom: 1, panX: 0, panY: 0, playing: null, airport: 0, bright: 0, gaps: false, lines: null };
+const S = { sel: [0, 0], fi: 0, frames: [], lineCache: new Map(), zoom: 1, panX: 0, panY: 0, playing: null, airport: 0, lines: null };
 let G, M, BM, EV = [];
 
 // ---------- data ----------
@@ -521,18 +520,18 @@ function drawGL() {
   gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);
   if (!useAcc) {
     view(prog); gl.bindVertexArray(vao);
-    gl.uniform1i(gl.getUniformLocation(prog, "u_gaps"), S.gaps ? 1 : 0);
-    const k = Math.min(0.9, Math.max(0.015, 5 / Math.sqrt(Math.max(1, S.legsShown)) * Math.pow(2, S.bright)));
+    gl.uniform1i(gl.getUniformLocation(prog, "u_gaps"), 0);
+    const k = Math.min(0.9, Math.max(0.015, 5 / Math.sqrt(Math.max(1, S.legsShown))));
     gl.uniform4f(gl.getUniformLocation(prog, "u_color"), 0.16, 0.38, 0.72, k);
     gl.drawElements(gl.LINE_STRIP, nIdx, gl.UNSIGNED_INT, 0); return;
   }
-  const [A, P, Q] = acc.t, wk = Math.pow(2, S.bright / 2);
+  const [A, P, Q] = acc.t, wk = 1;
   // 1. sums
   view(segP);
   gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, S.covTex); gl.activeTexture(gl.TEXTURE0);
   gl.uniform1i(gl.getUniformLocation(segP, "u_cov"), 1);
   gl.uniform4f(gl.getUniformLocation(segP, "u_box"), G.lat_min, G.lat_max, G.lon_min, G.lon_max);
-  gl.uniform1i(gl.getUniformLocation(segP, "u_gaps"), S.gaps ? 1 : 0);
+  gl.uniform1i(gl.getUniformLocation(segP, "u_gaps"), 0);
   gl.bindFramebuffer(gl.FRAMEBUFFER, A.fb); gl.clear(gl.COLOR_BUFFER_BIT);
   gl.bindVertexArray(segVao); gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, nSeg);
   // 2. jump flooding between P and Q
@@ -559,7 +558,7 @@ function drawGL() {
   view(comp); gl.bindTexture(gl.TEXTURE_2D, src.tex);
   gl.uniform1i(gl.getUniformLocation(comp, "u_tex"), 0);
   gl.uniform1f(gl.getUniformLocation(comp, "u_wk"), wk);
-  gl.uniform1i(gl.getUniformLocation(comp, "u_gaps"), S.gaps ? 1 : 0);
+  gl.uniform1i(gl.getUniformLocation(comp, "u_gaps"), 0);
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 
@@ -611,7 +610,7 @@ function draw() {
 // ---------- legend + stats ----------
 function legend() {
   // same width, colour and opacity formulas as the line shaders (fpw = flights per week)
-  const wk = Math.pow(2, S.bright / 2);
+  const wk = 1;
   const lev = fpw => Math.max(0, Math.min(1, Math.log(fpw / WEEK_LO) / Math.log(WEEK_HI / WEEK_LO)));
   const w = fpw => Math.max(1, 2 * Math.min(R_MAX, wk * (0.45 + 2 * lev(fpw))));
   const col = (fpw, k = 1) => { const t = lev(fpw), x = Math.min(1, fpw / WEEK_LO), rare = 0.25 + 0.75 * x * x * (3 - 2 * x);
@@ -620,7 +619,7 @@ function legend() {
   $("legendBody").innerHTML = `<div>One line per civil flight, takeoff to landing. <b>Thicker and darker = more flights per week</b> on that path.</div>
     <div class="lineKey">${[[1, "1 / week"], [WEEK_LO, `${WEEK_LO}`], [50, "50"], [WEEK_HI, `${WEEK_HI}+`]]
       .map(([f, t]) => `<span><i style="border-top:${w(f).toFixed(1)}px solid ${col(f)}"></i>${t}</span>`).join("")}</div>
-    <div class="lineKey"><span><i style="border-top:${w(50).toFixed(1)}px solid ${S.gaps ? "rgba(128,125,117,.6)" : col(50, 0.3)}"></i>not heard by any receiver: straight join</span></div>
+    <div class="lineKey"><span><i style="border-top:${w(50).toFixed(1)}px solid ${col(50, 0.3)}"></i>not heard by any receiver: straight join</span></div>
     <div class="lineKey"><span><i class="hatch"></i>few or no receivers: exact paths unknown</span></div>
     <p>An empty area can mean airlines avoid it <i>or</i> that no receivers cover it, so compare the same area over time.
       Lines fade out beyond ~1,800 km from ${ap ? ap[0] : "Doha"}.</p>`;
@@ -630,9 +629,8 @@ const span = ([a, b]) => a === b ? fmtD(M.days[a].date) : `${fmtD(M.days[a].date
 function stats() {
   const L = S.lines; if (!L) { $("stat").textContent = ""; return; }
   const ap = S.airport ? ` to/from <b>${M.airports[S.airport - 1][0]}</b>` : "";
-  $("stat").innerHTML = `<b>${S.legsShown.toLocaleString()}</b> flights${ap} · ${span(S.sel)}` +
-    (L.sampled ? `<br><span style="color:var(--text-3)">random sample of ${Math.round(L.nl / L.total * 100)}% of ${L.total.toLocaleString()} flights</span>` : "");
-  $("rangeTxt").textContent = span(S.sel);
+  $("stat").innerHTML = `<b>${S.legsShown.toLocaleString()}</b> flights${ap} this week` +
+    (L.sampled ? ` <span style="color:var(--text-3)">(random sample of ${Math.round(L.nl / L.total * 100)}% while playing)</span>` : "");
 }
 
 // ---------- timeline ----------
@@ -653,22 +651,35 @@ function timeline() {
     const dt = new Date(d.date + "T00:00:00Z");
     if (dt.getUTCDate() === 1) el("text", { x: pad.l + i * bw, y: H - 4, fill: "#75736b", "font-size": 10 }, svg).textContent = dt.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" });
   });
+  // outline round the week shown, so it reads as a playhead
+  el("rect", { x: pad.l + S.sel[0] * bw - 1, y: pad.t - 3, width: (S.sel[1] - S.sel[0] + 1) * bw + 0.5, height: y(0) - pad.t + 5,
+    fill: "none", stroke: "#2f6fc4", "stroke-width": 1.5, rx: 3 }, svg);
   for (const e of EV) { const i = M.days.findIndex(d => d.date === e.date); if (i < 0) continue;
     const t = el("text", { x: pad.l + (i + 0.5) * bw, y: 10, "text-anchor": "middle", fill: "#2b2a26", "font-size": 10 }, svg); t.textContent = "◆";
     el("title", {}, t).textContent = `${fmtD(e.date)}: ${e.title}`; }
   svg._geo = { pad, bw, n };
 }
+// the week label on the map: dates, position in the period, and that week's events with their sources
+function frameLabel() {
+  const from = M.days[S.sel[0]].date, to = M.days[S.sel[1]].date;
+  const evs = EV.filter(e => e.date >= from && e.date <= to);
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  $("frame").innerHTML = `${span(S.sel)}<small>week ${S.fi + 1} of ${S.frames.length}</small>` +
+    evs.map(e => `<div class="ev">◆ ${fmtD(e.date)}: ${esc(e.title)}${e.url ? ` <a href="${esc(e.url)}" target="_blank" rel="noopener">source</a>` : ""}</div>`).join("");
+}
+// weeks are 7-day windows ending on the last day; days before the first full week are left out
+function weekFrames() { const out = []; for (let e = M.days.length - 1; e - 6 >= 0; e -= 7) out.unshift([e - 6, e]); return out; }
+function frameAt(i) { const F = S.frames; for (let f = 0; f < F.length; f++) if (i <= F[f][1]) return f; return F.length - 1; }
+function showFrame(f) { S.fi = f; S.sel = S.frames[f]; timeline(); frameLabel(); }
 function idxAt(ev) { const g = svg._geo, r = svg.getBoundingClientRect();
   return Math.max(0, Math.min(g.n - 1, Math.floor((ev.clientX - r.left - g.pad.l) / g.bw))); }
-let brush = null;
-svg.addEventListener("pointerdown", e => { stopPlay(); brush = idxAt(e); svg.setPointerCapture(e.pointerId); setRange([brush, brush], false); });
-svg.addEventListener("pointermove", e => { if (brush === null) return; const i = idxAt(e); setRange([Math.min(brush, i), Math.max(brush, i)], false); });
-svg.addEventListener("pointerup", e => { if (brush === null) return; const i = idxAt(e); setRange([Math.min(brush, i), Math.max(brush, i)], true); brush = null; });
-function setRange(r, rebuild) {
-  S.sel = r;
-  [...$("presets").children].forEach(b => b.classList.remove("on"));
-  timeline(); if (rebuild) refresh();
-}
+// tap or drag on the chart picks a week (and pauses playback); the map follows shortly after the finger stops
+let scrub = false, scrubTimer = 0;
+function scrubTo(e, now) { const f = frameAt(idxAt(e)); if (f !== S.fi) showFrame(f);
+  clearTimeout(scrubTimer); scrubTimer = setTimeout(refresh, now ? 0 : 200); }
+svg.addEventListener("pointerdown", e => { stopPlay(); scrub = true; svg.setPointerCapture(e.pointerId); scrubTo(e); });
+svg.addEventListener("pointermove", e => { if (scrub) scrubTo(e); });
+svg.addEventListener("pointerup", e => { if (scrub) { scrub = false; scrubTo(e, true); } });
 
 // ---------- refresh ----------
 let token = 0;
@@ -680,30 +691,19 @@ async function refresh() {
 }
 
 // ---------- controls ----------
-function seg(id, fn) { $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
-  [...$(id).children].forEach(c => c.classList.toggle("on", c === b)); fn(b.dataset.v); }); }
-function preset(k) { [...$("presets").children].forEach(b => b.classList.toggle("on", b.dataset.v === String(k))); }
-seg("presets", v => { stopPlay(); const n = M.days.length, k = Math.min(n, +v);
-  S.sel = [n - k, n - 1];
-  timeline(); refresh(); });
 $("airport").onchange = e => { S.airport = +e.target.value; buildIndex(); stats(); legend(); draw(); };
-$("bright").oninput = e => { S.bright = +e.target.value; draw(); legend(); };
-$("gaps").onchange = e => { S.gaps = e.target.checked; draw(); legend(); };
-// Animation: one frame per calendar week (7-day windows ending on the last day), drawn from a lighter
-// random sample and preloading the next week. Stopping (or reaching the end) leaves that week selected
-// as the static view, reloaded in full.
+// Playback: one frame per week, drawn from a lighter random sample while preloading the next week. It starts
+// from the week after the one shown (from the first week if the last one is shown). Pausing, or reaching the
+// end, leaves that week on screen, reloaded in full.
 function stopPlay() {
   if (!S.playing) return false;
-  S.playing = null; $("play").textContent = "▶ Play weekly"; $("frame").classList.add("hide"); return true;
+  S.playing = null; $("play").textContent = "▶ Play"; return true;
 }
-function weekFrames() { const out = []; for (let e = M.days.length - 1; e - 6 >= 0; e -= 7) out.unshift([e - 6, e]); return out; }
 $("play").onclick = async () => {
   if (stopPlay()) return refresh();
-  const F = weekFrames(), me = S.playing = {}; $("play").textContent = "■ Stop"; preset(null);
-  $("frame").classList.remove("hide");
-  for (let f = 0; f < F.length && S.playing === me; f++) {
-    const t0 = performance.now(); S.sel = F[f]; timeline();
-    $("frame").innerHTML = `${span(F[f])}<small>week ${f + 1} of ${F.length}</small>`;
+  const F = S.frames, me = S.playing = {}; $("play").textContent = "❚❚ Pause";
+  for (let f = S.fi + 1 < F.length ? S.fi + 1 : 0; f < F.length && S.playing === me; f++) {
+    const t0 = performance.now(); showFrame(f);
     await refresh();
     if (f + 1 < F.length) shardPlan(F[f + 1], PLAY_MAX_LINES).list.forEach(([d, k]) => loadShard(d, k));
     await new Promise(r => setTimeout(r, Math.max(0, FRAME_MS - (performance.now() - t0))));
@@ -764,8 +764,9 @@ function hover(x, y) {
   $("demo").classList.toggle("hide", !M.demo);
   $("kEvt").classList.toggle("hide", !EV.length);
   $("source").textContent = `${M.demo ? "" : M.source + " · "}${n} days · last day ${fmtD(M.days[n - 1].date)} · updated ${M.generated.slice(0, 10)}`;
-  S.sel = [Math.max(0, n - 7), n - 1]; preset(7);
-  timeline(); await refresh();
+  S.frames = weekFrames();
+  if (!S.frames.length) S.frames = [[0, n - 1]];   // less than a week of data
+  showFrame(S.frames.length - 1); await refresh();
   const ro = new ResizeObserver(() => { timeline(); draw(); }); ro.observe($("mapwrap")); ro.observe(svg);
 })();
 </script>

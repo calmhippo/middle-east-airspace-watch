@@ -96,12 +96,16 @@ GitHub Pages source = "GitHub Actions" (already set).
 - Equirectangular projection with cos(28°) x-scaling; zoom 0.2–16 (zoom out to world).
 - One view only: flight paths (Nov 16: user removed Heatmap and Compare periods as redundant; focus is ▶ Play weekly
   showing corridors change over time). days/*.json density grids are still produced by the pipeline but unused by the viewer.
-- Controls: ▶ Play weekly (primary button), range presets, drag-select on daily-totals timeline, airport filter, line width
-  (hidden on phones), mark unheard stretches.
+- Always one week on screen (S.frames = 7-day windows ending on the last day; S.fi = index). The daily-totals chart is
+  the player (Nov 16, user agreed): ▶ Play / ❚❚ Pause beside it; tap or drag the chart to pick a week (pauses play,
+  map reloads 200 ms after the finger stops); outlined playhead on the chart. #frame on the map always shows the week,
+  "week N of M" and that week's events with source links. Only other control: the airport filter.
+  Removed Nov 16 (user agreed): range presets (1 day / 7 / 30 / All), Line width slider, "Mark unheard stretches"
+  (shader u_gaps is now always 0; the code path is still there).
 - Legend + "reading this map" caveats are one collapsible <details id="legend">, closed by default under 700 px wide
   (user, Nov 16: on phones the legend covered the whole map). Touch: one finger pans, two fingers pinch-zoom.
-- ▶ Play weekly (Nov 9): one frame per calendar week ending on the last day, PLAY_MAX_LINES=30k sample, preloads the
-  next week, big date label (#frame). Stop/end = that week, reloaded in full.
+- Play: from the week after the one shown (from week 1 if on the last), FRAME_MS=1500 per week, PLAY_MAX_LINES=30k
+  sample, preloads the next week. Pause/end = that week, reloaded in full.
 - Gulf<->Europe corridor split (crossing 34N, Nov 9 check): via Saudi/Jordan ~90% in Aug -> ~50% by late Oct, Iraq
   8% -> 50%, Iran ~0.2%. Not yet checked against news or receiver changes. Idea: a "Route corridors" chart.
 - `MAX_LINES = 150000`: above it, fewer shards per day are loaded (random sample, stated in the UI).
@@ -125,17 +129,18 @@ GitHub Pages source = "GitHub Actions" (already set).
 - All 89 days (Aug 10 – Nov 6) are pipeline v2 with 4 shards (verified after run 42470754478).
   Legs/day median ~8,650; low but complete days: Sep 1 (5,927, damaged tar) and Aug 13 (6,931, full 74k traces).
   The 09:17 UTC schedule did not fire on Nov 8; trigger update.yml manually if a day is missing.
-- data/events.json is empty.
+- data/events.json: 7 events Aug 30 – Oct 25 (researched Nov 16 from search results; the session could not open
+  news sites directly, so each date was cross-checked across search results). Fields: date, lat, lon, type, title, url.
 
 ## Next steps (agreed or proposed)
 1. Done Nov 8: backfill verified (all days v2, 4 shards), DOH filter works, look iterated with the user
    (light map, smooth lines, Doha distance fade, per-week scale, gradual unheard joins). Ask for feedback on the live site.
 2. Offered, not decided: finer path precision (DP 0.01°, int16 lat/lon*180; ~+70% data, reprocess all days ~3-4 h);
    great-circle joins; tuning WEEK_LO/WEEK_HI, FADE_KM, JOIN_WEIGHT.
-3. Research and add key events from the last ~3 months to data/events.json (date, lat, lon, type, title,
-   source URL). Sourced facts only; stay neutral.
-4. Ideas: colour by recent vs earlier days (route shifts), hover a line → callsign/route (needs callsign in shards),
-   filter by airline, altitude band filter, mobile layout.
+3. Done Nov 16: first 7 events. Keep adding as the period moves (sourced facts only; stay neutral).
+4. Ideas: "Route corridors" chart (Gulf<->Europe share via Saudi/Jordan, Iraq, Iran per week; check receiver
+   changes first), trim the airport filter to ~10 hubs, colour by recent vs earlier days, hover a line → callsign
+   (needs callsign in shards), filter by airline, altitude band filter.
 5. Check the daily schedule actually fires (it didn't on Nov 8); otherwise run update.yml by hand.
 
 ## Conventions

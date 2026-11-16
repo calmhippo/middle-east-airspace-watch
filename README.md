@@ -13,7 +13,7 @@ pipeline/process_day.py  → data/lines/YYYY-MM-DD.s0-3.bin  (full path of every
                          → data/days/YYYY-MM-DD.json      (flights per 0.1° cell, sparse)
 pipeline/update.py       → data/manifest.json          (day list + daily totals)
    ▼
-site/index.html          (static page: flight lines, heatmap, compare mode, weekly playback, events)
+site/index.html          (static page: flight lines, week by week, with playback and events)
 ```
 
 * **Box:** 25–65°E, 10–42°N (Egypt → Pakistan border, Yemen → Caucasus). Change it in `pipeline/grid.py`.
@@ -26,7 +26,8 @@ site/index.html          (static page: flight lines, heatmap, compare mode, week
   ranges the viewer loads fewer shards, i.e. a random sample, to stay under ~150k lines. Line files older
   than 180 days are pruned (`KEEP_LINE_DAYS` in `pipeline/update.py`); the small density grids are kept.
   Flights crossing midnight UTC appear as two pieces on consecutive days.
-* **Compare mode:** relative change per cell between a baseline and a recent window, normalised per day.
+* **Viewer:** one week at a time. Tap or drag the daily-totals chart to pick a week, or press Play to step
+  through every week. Events in the week shown are listed on the map with their sources.
 
 ## Run it
 
@@ -49,16 +50,16 @@ cd site && ln -s ../data data && python3 -m http.server
 
 ## Events
 
-`data/events.json` holds dated events drawn on the map and timeline:
+`data/events.json` holds dated events (edited by hand, each with a source link) drawn on the map and timeline:
 ```json
 {"events": [{"date": "2026-10-01", "lat": 15.3, "lon": 44.2, "type": "missile",
-             "title": "Short description", "source": "https://..."}]}
+             "title": "Short description", "url": "https://..."}]}
 ```
 
 ## Caveats
 
 * adsb.lol relies on volunteer receivers. Coverage is thin over parts of Iran, Iraq and the Saudi interior,
-  so an empty area may simply be unobserved. Compare periods rather than reading absolute emptiness.
+  so an empty area may simply be unobserved. Compare weeks rather than reading absolute emptiness.
 * A receiver going offline shows up as a drop in traffic. Check the daily totals bar before drawing conclusions.
 
 Basemap: Natural Earth 1:50m (public domain).
