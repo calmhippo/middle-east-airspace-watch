@@ -104,8 +104,16 @@ GitHub Pages source = "GitHub Actions" (already set).
   "week N of M · flights" (all flights: from manifest totals; airport filter: loaded lines, ≈ scaled while playing),
   the week's Gulf–Europe corridor split, and that week's events with source links. Only other control: the airport
   filter, cut to 13 hubs (HUBS in the viewer, looked up by code), now in the header.
-- Events (Nov 16, user: make them stand out): red EV_COLOR #c94343 diamonds with a halo and date label on the map,
-  red diamonds above the chart.
+- Change map (Nov 16, user: effects too hard to see; wanted deltas, baseline traffic still visible, heat-map colour for
+  routes added/removed). "Highlight changes" (S.deltaOn, default on): lines drawn in greys (GREY_LO/HI via u_lo/u_hi),
+  and #delta canvas (CSS mix-blend-mode multiply, between #gl and #top) tints each 0.1° cell blue (MORE, more flights/day
+  than the baseline) or red (LESS, fewer). Baseline = first BASE_WEEKS=4 week frames (fixed, so a new corridor stays blue;
+  rolling would flash then fade), loaded once as a ~120k-flight sample. flowField(): each flight once per cell, unheard
+  joins included (so receiver changes don't read as route changes), per day, 1-2-1 blur x2. Coloured only if
+  |d|/max >= ~0.2-0.7 and |d| >= ~0.6-4 flights/day (smoothstep ramps); fades with FADE_KM and over 1.5° at the box edge.
+  ~270 ms per field. Hover shows this week vs baseline flights/day. Diverging pair = dataviz blue<->red.
+- Events: black EV_COLOR #1f1f1c diamonds (white ring, date in a white pill), because red now means "fewer" (they were
+  red for a few hours on Nov 16 at the user's request; the switch was explained to the user).
 - Chart tabs: "Flights per day" / "Gulf–Europe routes" (100% stacked daily bars from manifest days[].corr = [west, iraq,
   iran]; colours = dataviz categorical slots 1-3 #2a78d6/#eb6834/#1baf7a, validated). Both share the playhead.
 - Gulf–Europe corridors: pipeline/corridors.py, called by `update.py manifest` (~2 s for 97 days; keeps the old value
