@@ -5,123 +5,177 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Middle East Airspace Watch</title>
 <style>
+  /* Quiet atlas: the map is the page. One floating card says which week is shown; a slim dock
+     at the bottom plays the weeks. Ink and paper neutrals; colour only means change (blue more, red fewer). */
   :root {
-    --surface: #f7f6f2; --surface-2: #ffffff; --water: #ffffff; --land: #e8e4d8;
-    --border: #d6d3c9; --text: #1f1f1c; --text-2: #4a4944; --text-3: #75736b;
-    --blue: #2f6fc4; --red: #c94343; --base: #9c9a90; --on: #e6e3d9; --panel: rgba(255,255,255,.93);
+    --paper: #f6f5f2; --card: rgba(255,255,255,.94); --ink: #1c1c1a; --ink-2: #57554f; --ink-3: #8e8b83;
+    --hair: #e4e1da; --hover: #efede8; --more: #2a6fd6; --less: #d6453b; --focus: #2a6fd6;
+    --shadow: 0 1px 2px rgba(28,28,26,.06), 0 6px 24px rgba(28,28,26,.08);
+    --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--surface); color: var(--text);
-    font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  body { display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh; }
-  header { padding: 12px 16px 6px; display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
-  h1 { font-size: 16px; font-weight: 600; margin: 0; }
-  .meta { color: var(--text-3); font-size: 12px; }
-  .demo { background: #fbe3b4; color: #6b4300; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; }
-  header { border-bottom: 1px solid var(--border); padding-bottom: 8px; align-items: center; }
-  #airportCtl { margin-left: auto; }
-  .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px; }
-  .seg button { background: none; border: 0; color: var(--text-2); padding: 4px 10px; border-radius: 4px; cursor: pointer; font: inherit; }
-  .seg button.on { background: var(--on); color: var(--text); font-weight: 600; }
-  .seg button:focus-visible, .btn:focus-visible, select:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
-  .btn, select { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 6px; cursor: pointer; font: inherit; }
-  .lbl { color: var(--text-3); font-size: 12px; }
-  .ctl { display: inline-flex; gap: 6px; align-items: center; }
-  input[type=range] { accent-color: var(--blue); width: 90px; }
-  .stat { color: var(--text-2); font-size: 12px; margin-left: auto; text-align: right; flex: 1 1 200px; min-width: 0; }
-  .stat b { color: var(--text); font-weight: 600; }
+  html, body { margin: 0; height: 100%; background: var(--paper); color: var(--ink); font: 13px/1.45 var(--ui); }
+  body { display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh;
+    -webkit-font-smoothing: antialiased; }
+  button, select { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .hide { display: none !important; }
+
+  /* header: name and period on the left, the three controls on the right */
+  header { display: flex; align-items: center; gap: 10px 20px; flex-wrap: wrap; padding: 12px 20px; border-bottom: 1px solid var(--hair); }
+  .brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; min-width: 0; }
+  h1 { font-size: 15px; font-weight: 650; letter-spacing: -.01em; margin: 0; }
+  .meta { color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .demo { background: #fdf0d2; color: #6b4a00; padding: 2px 8px; border-radius: 999px; font-weight: 600; font-size: 11px; }
+  .controls { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  select { appearance: none; border: 0; background: var(--hover) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2357554f' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 10px center;
+    padding: 6px 28px 6px 12px; border-radius: 999px; cursor: pointer; font-size: 12px; }
+  .seg { display: inline-flex; background: var(--hover); border-radius: 999px; padding: 2px; }
+  .seg button { border: 0; background: none; padding: 4px 12px; border-radius: 999px; cursor: pointer; font-size: 12px; color: var(--ink-2); }
+  .seg button.on { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(28,28,26,.12); }
+  .icon-btn { border: 0; background: none; color: var(--ink-2); padding: 6px 8px; border-radius: 999px; cursor: pointer; font-size: 12px; }
+  .icon-btn:hover { background: var(--hover); color: var(--ink); }
+
+  /* map */
   #mapwrap { position: relative; overflow: hidden; min-height: 300px; }
   #mapwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  #gl, #delta, #top { pointer-events: none; }
-  #delta { mix-blend-mode: multiply; }   /* tints the grey lines and the map underneath */
-  .dk { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 3px; }
+  #gl, #top { pointer-events: none; }
   #base { cursor: grab; touch-action: none; }
   #base.drag { cursor: grabbing; }
-  #tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--border);
-    border-radius: 6px; padding: 6px 8px; font-size: 12px; color: var(--text); display: none; white-space: nowrap; z-index: 3; }
-  #tip .s { color: var(--text-3); }
-  #legend { position: absolute; left: 12px; bottom: 12px; background: var(--panel); border: 1px solid var(--border);
-    border-radius: 6px; font-size: 11px; color: var(--text-2); z-index: 2; width: 280px; max-width: calc(100% - 64px);
-    max-height: calc(100% - 24px); overflow: auto; }
-  #legend summary { cursor: pointer; padding: 6px 10px; font-weight: 600; color: var(--text); list-style: none; user-select: none; }
-  #legend summary::-webkit-details-marker { display: none; }
-  #legend summary::after { content: "Hide"; float: right; font-weight: 400; color: var(--text-3); margin-left: 12px; }
-  #legend:not([open]) summary::after { content: "Show"; }
-  #legendBody { padding: 0 10px 8px; }
-  #legendBody p { margin: 6px 0 0; color: var(--text-3); }
-  .lineKey { display: flex; gap: 12px; margin-top: 4px; }
-  .lineKey span { display: inline-flex; align-items: center; gap: 5px; }
-  .lineKey { flex-wrap: wrap; align-items: center; }
-  .lineKey i { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--blue); }
-  .lineKey i.gap { border-top: 1px solid rgba(120,119,112,.7); }
-  .lineKey i.hatch { flex: none; height: 12px; border: 0; background: repeating-linear-gradient(-45deg, rgba(110,104,90,.5) 0 1.2px, transparent 1.2px 4.2px); }
-  #zoom { position: absolute; right: 12px; top: 12px; display: flex; flex-direction: column; gap: 4px; z-index: 2; }
-  #zoom .btn { width: 30px; padding: 4px 0; }
-  #loading { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel);
-    border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text-2); z-index: 2; display: none; }
-  .btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
-  footer { border-top: 1px solid var(--border); padding: 6px 16px 10px; }
-  .tlhead { display: flex; gap: 14px; align-items: center; font-size: 12px; color: var(--text-2); margin-bottom: 2px; flex-wrap: wrap; }
-  .key { display: inline-flex; align-items: center; gap: 5px; }
-  .sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
-  .player { display: flex; gap: 10px; align-items: center; }
-  .player .btn { flex: none; width: 96px; padding: 8px 0; }
-  #timeline { flex: 1; min-width: 0; width: 100%; height: 86px; display: block; user-select: none; cursor: pointer; touch-action: none; }
-  .hide { display: none !important; }
-  #frame { position: absolute; left: 12px; top: 12px; max-width: min(340px, calc(100% - 64px)); background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
-    padding: 6px 12px; font-size: 20px; font-weight: 600; color: var(--text); z-index: 2; font-variant-numeric: tabular-nums; }
-  #frame small { display: block; font-size: 11px; font-weight: 400; color: var(--text-3); }
-  #frame .ev { font-size: 12px; font-weight: 400; color: var(--text-2); margin-top: 4px; line-height: 1.35; }
-  #frame .ev b, .evk { color: var(--text); }
-  #frame .corr { font-size: 11px; font-weight: 400; color: var(--text-2); margin-top: 3px; }
-  .cs { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: -1px; }
-  .cs:first-child { margin-left: 0; }
-  .seg.small button { padding: 2px 8px; font-size: 12px; }
-  #corrKey { color: var(--text-2); }
-  #frame .ev a { color: var(--text-3); white-space: nowrap; }
+  .float { position: absolute; z-index: 2; background: var(--card); border-radius: 12px; box-shadow: var(--shadow);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+  #frame { left: 16px; top: 16px; width: 300px; max-width: calc(100% - 72px); padding: 14px 16px; font-variant-numeric: tabular-nums; }
+  .wk { font-size: 22px; font-weight: 650; letter-spacing: -.02em; line-height: 1.15; }
+  .sub { color: var(--ink-3); font-size: 12px; margin-top: 2px; }
+  .key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 10px; font-size: 12px; color: var(--ink-2); }
+  .key i { display: inline-block; width: 16px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  .key .vs { color: var(--ink-3); }
+  .corr { margin-top: 12px; }
+  .corr .lbl { font-size: 11px; color: var(--ink-3); display: flex; justify-content: space-between; }
+  .bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 5px 0 4px; gap: 2px; background: var(--card); }
+  .bar span { display: block; height: 100%; }
+  .corr .nums { font-size: 11px; color: var(--ink-2); display: flex; gap: 10px; flex-wrap: wrap; }
+  .corr .nums b { font-weight: 600; color: var(--ink); }
+  .evs { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hair); display: grid; gap: 8px; }
+  .ev { font-size: 12px; line-height: 1.4; color: var(--ink-2); display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+  .ev .d { font-weight: 600; color: var(--ink); white-space: nowrap; }
+  .ev a.d { text-decoration: none; }
+  .ev a.d:hover { text-decoration: underline; }
+  #zoom { right: 16px; top: 16px; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+  #zoom button { width: 34px; height: 34px; border: 0; background: none; cursor: pointer; font-size: 16px; color: var(--ink-2); }
+  #zoom button + button { border-top: 1px solid var(--hair); }
+  #zoom button:hover { background: var(--hover); color: var(--ink); }
+  #loading { left: 50%; bottom: 16px; transform: translateX(-50%); padding: 6px 12px; font-size: 12px; color: var(--ink-2); display: none; }
+  #tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; border-radius: 8px; padding: 6px 9px;
+    font-size: 12px; display: none; white-space: nowrap; z-index: 3; font-variant-numeric: tabular-nums; }
+  #tip .s { color: rgba(255,255,255,.65); }
+
+  /* dock: chart tabs, then the play button beside the daily chart (the chart is the scrubber) */
+  footer { border-top: 1px solid var(--hair); padding: 10px 20px 12px; }
+  .dockhead { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+  .tabs { display: flex; gap: 16px; }
+  .tabs button { border: 0; background: none; padding: 2px 0; cursor: pointer; font-size: 12px; color: var(--ink-3); border-bottom: 1.5px solid transparent; }
+  .tabs button.on { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600; }
+  #corrKey { display: flex; gap: 12px; font-size: 11px; color: var(--ink-2); margin-left: auto; }
+  .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
+  .player { display: flex; align-items: center; gap: 14px; }
+  #play { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--ink); color: #fff; cursor: pointer;
+    display: grid; place-items: center; }
+  #play:hover { background: #33322f; }
+  #play svg { width: 14px; height: 14px; fill: currentColor; }
+  #timeline { flex: 1; min-width: 0; width: 100%; height: 72px; display: block; user-select: none; cursor: pointer; touch-action: none; }
+
+  /* about */
+  dialog { border: 0; border-radius: 14px; padding: 0; max-width: min(520px, calc(100% - 32px)); box-shadow: 0 10px 40px rgba(28,28,26,.25); color: var(--ink); }
+  dialog::backdrop { background: rgba(28,28,26,.25); }
+  .about { padding: 22px 24px 20px; font-size: 13px; line-height: 1.55; color: var(--ink-2); max-height: 80vh; overflow: auto; }
+  .about h2 { font-size: 16px; color: var(--ink); margin: 0 0 12px; letter-spacing: -.01em; }
+  .about h3 { font-size: 12px; color: var(--ink); margin: 16px 0 4px; }
+  .about p { margin: 0 0 6px; }
+  .about .row { display: flex; align-items: center; gap: 10px; margin: 4px 0; }
+  .about .row i { flex: none; display: inline-block; width: 28px; border-radius: 3px; }
+  .about .close { position: absolute; right: 10px; top: 10px; }
+  .about a { color: var(--ink); }
+
   @media (max-width: 700px) {
-    header { padding: 10px 12px 8px; gap: 4px 12px; } #airportCtl { margin-left: 0; }
-    #frame { font-size: 15px; padding: 5px 10px; } #frame .ev { font-size: 11px; }
-    footer { padding: 4px 12px 8px; } #timeline { height: 64px; } .player .btn { width: 84px; }
-    #airportCtl .lbl, #kEvt, #tlHint { display: none; } #frame .corr { font-size: 10px; }
+    header { padding: 10px 12px; gap: 8px; } .controls { margin-left: 0; width: 100%; } #aboutBtn { margin-left: auto; }
+    .brand { gap: 2px 10px; } h1 { font-size: 14px; }
+    #frame { left: 10px; top: 10px; padding: 10px 12px; max-width: calc(100% - 62px); } .wk { font-size: 17px; }
+    .key, .ev { font-size: 11px; } .corr { margin-top: 8px; } .evs { margin-top: 8px; padding-top: 8px; gap: 6px; }
+    .key { margin-top: 6px; } .corr .nums { font-size: 10px; gap: 8px; }
+    .ev .t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    #zoom { right: 10px; top: 10px; } #zoom button { width: 32px; height: 32px; }
+    footer { padding: 8px 12px 10px; } #timeline { height: 56px; } #play { width: 36px; height: 36px; } .player { gap: 10px; }
+    #corrKey { margin-left: 0; width: 100%; }
   }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <header>
-  <h1>Middle East Airspace Watch</h1>
-  <span class="meta" id="source">Loading…</span>
-  <span class="demo hide" id="demo">SYNTHETIC DEMO DATA, not real flights</span>
-  <span class="ctl" id="airportCtl"><span class="lbl">Flights</span><select id="airport" aria-label="Show flights to or from"><option value="0">All flights</option></select></span>
-  <label class="ctl" title="Colour the map by how traffic this week compares with the first four weeks"><input type="checkbox" id="deltaOn" checked><span class="lbl">Highlight changes</span></label>
+  <div class="brand">
+    <h1>Middle East Airspace Watch</h1>
+    <span class="meta" id="source">Loading…</span>
+    <span class="demo hide" id="demo">Sample data, not real flights</span>
+  </div>
+  <div class="controls">
+    <select id="airport" aria-label="Show flights to or from an airport"><option value="0">All flights</option></select>
+    <div class="seg" id="mode" role="tablist" aria-label="Map colours">
+      <button data-v="delta" class="on" role="tab" title="Colour routes by how traffic compares with the first four weeks">Changes</button><button data-v="plain" role="tab" title="All routes in one colour">Traffic</button>
+    </div>
+    <button class="icon-btn" id="aboutBtn" aria-haspopup="dialog">About</button>
+  </div>
 </header>
 
 <div id="mapwrap">
-  <canvas id="base" aria-label="Map of flights over the Middle East"></canvas>
+  <canvas id="base" aria-label="Map of civil flights over the Middle East"></canvas>
   <canvas id="gl"></canvas>
-  <canvas id="delta"></canvas>
   <canvas id="top"></canvas>
   <div id="tip"></div>
-  <div id="loading">Loading flights…</div>
-  <div id="frame"></div>
-  <div id="zoom"><button class="btn" id="zin" aria-label="Zoom in">+</button><button class="btn" id="zout" aria-label="Zoom out">−</button><button class="btn" id="zreset" aria-label="Reset view">⟲</button></div>
-  <details id="legend" open><summary>How to read this map</summary><div id="legendBody"></div></details>
+  <div id="loading" class="float">Loading flights…</div>
+  <div id="frame" class="float" aria-live="polite"></div>
+  <div id="zoom" class="float"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zreset" aria-label="Reset view">⟲</button></div>
 </div>
 
 <footer>
-  <div class="tlhead">
-    <div class="seg small" id="chartTab" role="tablist">
+  <div class="dockhead">
+    <div class="tabs" id="chartTab" role="tablist">
       <button data-v="flights" class="on" role="tab">Flights per day</button><button data-v="corr" role="tab">Gulf–Europe routes</button>
     </div>
     <span id="corrKey" class="hide"></span>
-    <span id="tlHint">Tap or drag the chart to pick a week.</span>
-    <span class="key hide" id="kEvt"><span class="evk">◆</span>Event</span>
   </div>
   <div class="player">
-    <button class="btn primary" id="play" title="Play week by week through the whole period">▶ Play</button>
-    <svg id="timeline" aria-label="Flights per day; tap or drag to pick a week"></svg>
+    <button id="play" aria-label="Play week by week"></button>
+    <svg id="timeline" role="slider" aria-label="Week shown; tap or drag to choose"></svg>
   </div>
 </footer>
+
+<dialog id="about">
+  <div class="about">
+    <button class="icon-btn close" id="aboutX" aria-label="Close">✕</button>
+    <h2>Reading the map</h2>
+    <p>Each line is one civil flight that crossed the region (Egypt to Pakistan, Yemen to the Caucasus) in the week shown,
+      from takeoff to landing. Thicker, darker lines carry more flights.</p>
+    <h3>Changes</h3>
+    <div class="row"><i style="height:3px;background:var(--more)"></i><span>More flights per day than in <span class="baseTxt"></span></span></div>
+    <div class="row"><i style="height:3px;background:var(--less)"></i>Fewer flights. A faint red trace with no line is a route no longer flown.</div>
+    <div class="row"><i style="height:3px;background:#a9a69e"></i>About the same</div>
+    <p>The first four weeks are the reference period, so they show little change themselves.</p>
+    <h3>Events</h3>
+    <div class="row"><i style="height:10px;width:10px;transform:rotate(45deg);background:var(--ink);margin:0 9px"></i>An event in the week shown. Details and a source link are in the week card.</div>
+    <h3>Gulf–Europe routes</h3>
+    <p>Flights between Gulf airports and Europe, by where they cross latitude 34°N: west of Iraq (over Saudi Arabia,
+      Jordan, Syria or Egypt), over Iraq, or over Iran.</p>
+    <h3>Gaps in coverage</h3>
+    <p>Positions come from volunteer receivers. Few cover Saudi Arabia's interior, Iraq, Iran and the open sea, so there a
+      flight is drawn as a straight line between the last and next report. An empty area can mean airlines avoid it or that
+      no receiver hears it, so compare the same area across weeks.</p>
+    <h3>Data</h3>
+    <p><a href="https://adsb.lol" target="_blank" rel="noopener">adsb.lol</a> flight history (ODbL 1.0), updated daily.
+      Lines fade out about 1,800 km from Doha, or from the airport you pick.</p>
+  </div>
+</dialog>
 
 <script>
 "use strict";
@@ -131,9 +185,11 @@ const PLAY_MAX_LINES = 30000;        // ...and this while the animation plays (a
 const FRAME_MS = 1500;               // time per week in the animation
 const S = { deltaOn: true, base: null, delta: null, chart: "flights", sel: [0, 0], fi: 0, frames: [], lineCache: new Map(), zoom: 1, panX: 0, panY: 0, playing: null, airport: 0, lines: null };
 let G, M, BM, EV = [];
-const EV_COLOR = "#1f1f1c";   // events: black (red now means "fewer flights" in the change colours)
-// Change colours (dataviz diverging pair: blue = more flights than the baseline, red = fewer; grey lines = traffic)
-const MORE = [42, 120, 214], LESS = [214, 58, 58];
+const EV_COLOR = "#1c1c1a";   // events: ink (red means "fewer flights")
+// Change colours (dataviz diverging pair): blue = more flights than the baseline, red = fewer; unchanged routes stay grey
+const MORE = [42, 111, 214], LESS = [214, 69, 59];
+const PLAY_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9.5-5.5z"/></svg>';
+const PAUSE_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 1.5h3.2v11H2.5zM8.3 1.5h3.2v11H8.3z"/></svg>';
 const BASE_WEEKS = 4;           // baseline = the first BASE_WEEKS weeks of the period
 const BASE_MAX_LINES = 120000;  // ...loaded as a random sample of about this many flights
 const DELTA_RES = 0.1;          // degrees per cell of the change grid
@@ -233,8 +289,10 @@ function coverage(L) {
 // ---------- projection ----------
 const cv = $("base"), ctx = cv.getContext("2d"), topc = $("top"), tctx = topc.getContext("2d");
 const COS = Math.cos(28 * Math.PI / 180);
+// fit the analysis box to the map; on narrow (portrait) screens, below the week card, which would otherwise cover it
 function base() { const r = cv.getBoundingClientRect(); const wu = (G.lon_max - G.lon_min) * COS, hu = G.lat_max - G.lat_min;
-  const s = Math.min(r.width / wu, r.height / hu) * 0.92; return { s, ox: (r.width - wu * s) / 2, oy: (r.height - hu * s) / 2, r }; }
+  const top = r.width < 700 ? Math.min(150, r.height * 0.3) : 0, h = r.height - top;
+  const s = Math.min(r.width / wu, h / hu) * 0.92; return { s, ox: (r.width - wu * s) / 2, oy: top + (h - hu * s) / 2, r }; }
 function proj(lat, lon) { const b = base(), s = b.s * S.zoom;
   return [b.ox + S.panX + (lon - G.lon_min) * COS * s, b.oy + S.panY + (G.lat_max - lat) * s]; }
 function unproj(x, y) { const b = base(), s = b.s * S.zoom;
@@ -260,7 +318,7 @@ const R_MAX = 4;              // widest half-width in CSS pixels
 const FADE_KM = [1800, 3200]; // 1800 km from Doha covers all of Saudi Arabia; Istanbul/Delhi are ~2,600-2,700 km
 // line colour by flights/day (t = log2(1 + f) / log2(101)): mid blue for rare paths -> deep navy for 100+/day
 const LINE_LO = [52, 112, 192], LINE_HI = [10, 42, 98];
-const GREY_LO = [150, 148, 140], GREY_HI = [55, 54, 50];   // line colours when changes are highlighted
+const GREY_LO = [196, 193, 186], GREY_HI = [120, 117, 110];  // line colours when changes are shown: quiet, so colour leads
 const lineRamp = () => S.deltaOn ? [GREY_LO, GREY_HI] : [LINE_LO, LINE_HI];
 // An unheard join counts this much of a flight towards line width, so observed corridors dominate.
 // JOIN_WEIGHT_LOWCOV applies where receiver coverage is low (the hatched areas). Tried Nov 9 at 1.0
@@ -338,7 +396,7 @@ if (gl) {
     uniform sampler2D u_cov; uniform vec4 u_box; uniform bool u_gaps; out vec4 o;
     float lowCoverage(vec2 ll) {            // 0 = receivers cover this area, 1 = little or no coverage
       vec2 uv = vec2((ll.y - u_box.z) / (u_box.w - u_box.z), (ll.x - u_box.x) / (u_box.y - u_box.x));
-      return any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0))) ? 0.0 : texture(u_cov, uv).r;
+      return texture(u_cov, clamp(uv, 0.0, 1.0)).r;   // outside the box: like its nearest edge (no visible box)
     }
     void main() {
       vec2 f = gl_FragCoord.xy, ab = v_b - v_a; float l2 = dot(ab, ab);
@@ -409,7 +467,8 @@ if (gl) {
   // step 3: shade
   comp = link(FS, `#version 300 es
     precision highp float; uniform sampler2D u_tex; uniform bool u_gaps; ${VIEW} ${HW} out vec4 o;
-    uniform vec3 u_lo, u_hi;
+    uniform vec3 u_lo, u_hi; uniform sampler2D u_delta; uniform bool u_dOn; uniform vec4 u_box;
+    const vec3 MORE = vec3(${MORE.join(",")}) / 255.0, LESS = vec3(${LESS.join(",")}) / 255.0;
     void main() {
       float fade = fadeAt(unproject(gl_FragCoord.xy));
       vec4 s = texelFetch(u_tex, ivec2(gl_FragCoord.xy), 0);
@@ -419,6 +478,14 @@ if (gl) {
       float t = level(s.z), rare = mix(0.25, 1.0, smoothstep(0.0, ${WEEK_LO}.0, 7.0 * s.z));
       vec3 col = mix(u_lo, u_hi, t);
       float a = cov * mix(0.6, 1.0, t) * rare * fade;
+      if (u_dOn) {          // change since the baseline at this spot: r = more, g = fewer (0..1)
+        vec2 ll = unproject(gl_FragCoord.xy);
+        vec2 uv = vec2((ll.y - u_box.z) / (u_box.w - u_box.z), (u_box.y - ll.x) / (u_box.y - u_box.x));
+        vec2 d = any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0))) ? vec2(0.0) : texture(u_delta, uv).rg;
+        float k = max(d.r, d.g);
+        col = mix(col, d.r >= d.g ? MORE : LESS, k);
+        a *= mix(0.7, 1.0, k);
+      }
       // unheard stretches (s.w = their share here): paler; grey when "Mark unheard stretches" is on
       if (u_gaps) { col = mix(col, vec3(0.5, 0.49, 0.46), s.w); a *= 1.0 - 0.6 * s.w; }
       else a *= 1.0 - 0.7 * s.w;
@@ -478,31 +545,6 @@ function uploadLines(L) {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, C.cw, C.ch, 0, gl.RED, gl.UNSIGNED_BYTE, C.low);
   for (const [p, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR],
                         [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, p, v);
-}
-// hatching mask for the low-coverage areas: one pixel per coverage cell (north up), scaled up smoothly when drawn
-function hatchMask(C) {
-  const c = document.createElement("canvas"); c.width = C.cw; c.height = C.ch;
-  const g = c.getContext("2d"), img = g.createImageData(C.cw, C.ch);
-  const E = 4;   // fade out over the outermost cells so the box edge doesn't show as a hard rectangle
-  for (let y = 0; y < C.ch; y++) for (let x = 0; x < C.cw; x++) {
-    const e = Math.min(1, (Math.min(x, y, C.cw - 1 - x, C.ch - 1 - y) + 0.5) / E);
-    img.data[((C.ch - 1 - y) * C.cw + x) * 4 + 3] = C.hatch[y * C.cw + x] * e; }
-  g.putImageData(img, 0, 0); return c;
-}
-const hatchTile = (() => {     // diagonal stripes, 6 CSS px apart
-  const c = document.createElement("canvas"); c.width = c.height = 12; const g = c.getContext("2d");
-  g.strokeStyle = "rgba(110,104,90,.42)"; g.lineWidth = 1.2;
-  for (const o of [-12, 0, 12]) { g.beginPath(); g.moveTo(o, 12); g.lineTo(o + 12, 0); g.stroke(); }
-  return c; })();
-const hatchCv = document.createElement("canvas");
-function drawHatch(r, dpr, x0, y0, x1, y1) {
-  if (!S.hatch) return;
-  hatchCv.width = Math.round(r.width * dpr); hatchCv.height = Math.round(r.height * dpr);
-  const h = hatchCv.getContext("2d"); h.setTransform(dpr, 0, 0, dpr, 0, 0);
-  h.fillStyle = h.createPattern(hatchTile, "repeat"); h.fillRect(0, 0, r.width, r.height);
-  h.globalCompositeOperation = "destination-in"; h.imageSmoothingEnabled = true;
-  h.drawImage(S.hatch, x0, y0, x1 - x0, y1 - y0);
-  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(hatchCv, 0, 0); ctx.restore();
 }
 function buildIndex() {
   const L = S.lines; if (!gl || !L) return;
@@ -585,7 +627,11 @@ function drawGL() {
   gl.uniform1i(gl.getUniformLocation(comp, "u_tex"), 0);
   gl.uniform1f(gl.getUniformLocation(comp, "u_wk"), wk);
   gl.uniform1i(gl.getUniformLocation(comp, "u_gaps"), 0);
-  const [lo, hi] = lineRamp();
+  const [lo, hi] = lineRamp(), dOn = !!(S.deltaOn && S.delta && S.deltaTex);
+  gl.uniform1i(gl.getUniformLocation(comp, "u_dOn"), dOn ? 1 : 0);
+  gl.uniform4f(gl.getUniformLocation(comp, "u_box"), G.lat_min, G.lat_max, G.lon_min, G.lon_max);
+  if (dOn) { gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, S.deltaTex); gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, src.tex); gl.uniform1i(gl.getUniformLocation(comp, "u_delta"), 2); }
   gl.uniform3f(gl.getUniformLocation(comp, "u_lo"), ...lo.map(v => v / 255));
   gl.uniform3f(gl.getUniformLocation(comp, "u_hi"), ...hi.map(v => v / 255));
   gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -638,29 +684,32 @@ async function baseField() {
 // colour per cell: blue where this week has more flights per day than the baseline, red where fewer. A cell is
 // coloured only when the change is both large relative to its traffic and at least ~1 flight a day, so
 // sampling noise and quiet areas stay neutral. Fades out with distance like the lines.
-const deltaCv = document.createElement("canvas");
+const ghostCv = document.createElement("canvas");
 function buildDelta(cur, base) {
-  const { w, h } = cur, a = cur.a, b = base.a; deltaCv.width = w; deltaCv.height = h;
-  const g = deltaCv.getContext("2d"), img = g.createImageData(w, h), px = img.data, [clat, clon] = fadeCenter();
+  const { w, h } = cur, a = cur.a, b = base.a, rg = new Uint8Array(w * h * 2); ghostCv.width = w; ghostCv.height = h;
+  const g = ghostCv.getContext("2d"), img = g.createImageData(w, h), px = img.data;
   const sm = (e0, e1, x) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
-  const km = (la, lo) => { const r = Math.PI / 180, dla = (la - clat) * r / 2, dlo = (lo - clon) * r / 2;
-    const q = Math.sin(dla) ** 2 + Math.cos(la * r) * Math.cos(clat * r) * Math.sin(dlo) ** 2; return 12742 * Math.asin(Math.min(1, Math.sqrt(q))); };
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
     const i = y * w + x, d = a[i] - b[i], m = Math.max(a[i], b[i]); if (m < 0.3) continue;
-    const k = sm(0.2, 0.7, Math.abs(d) / m) * sm(0.6, 4, Math.abs(d)); if (k <= 0.02) continue;
-    const edge = Math.min(1, (Math.min(x, y, w - 1 - x, h - 1 - y) + 0.5) / 15);   // no hard edge at the box (1.5°)
-    const fade = edge * (1 - sm(FADE_KM[0], FADE_KM[1], km(G.lat_max - (y + 0.5) * DELTA_RES, G.lon_min + (x + 0.5) * DELTA_RES)));
-    const c = d > 0 ? MORE : LESS;
-    px.set([c[0], c[1], c[2], Math.round(235 * k * fade)], i * 4);
+    const k = sm(0.2, 0.6, Math.abs(d) / m) * sm(0.6, 3, Math.abs(d)); if (k <= 0.02) continue;
+    const edge = Math.min(1, (Math.min(x, y, w - 1 - x, h - 1 - y) + 0.5) / 15);   // fade out at the box edge
+    rg[2 * i + (d > 0 ? 0 : 1)] = Math.round(255 * k * edge);
+    // where traffic has largely gone, a faint red trace keeps the old route visible
+    if (d < 0) { const gone = 1 - a[i] / b[i];
+      px.set([LESS[0], LESS[1], LESS[2], Math.round(110 * k * sm(0.5, 0.9, gone) * edge)], i * 4); }
   }
   g.putImageData(img, 0, 0);
+  if (!gl) return;
+  if (!S.deltaTex) S.deltaTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, S.deltaTex); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RG8, w, h, 0, gl.RG, gl.UNSIGNED_BYTE, rg);
+  for (const [p, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR],
+                        [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, p, v);
 }
-function drawDelta(r, dpr) {
-  const dc = $("delta"); fit(dc); const g = dc.getContext("2d");
-  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, r.width, r.height);
+function drawGhost() {
   if (!S.deltaOn || !S.delta) return;
   const [x0, y0] = proj(G.lat_max, G.lon_min), [x1, y1] = proj(G.lat_min, G.lon_max);
-  g.imageSmoothingEnabled = true; g.drawImage(deltaCv, x0, y0, x1 - x0, y1 - y0);
+  ctx.save(); ctx.imageSmoothingEnabled = true; ctx.filter = "blur(2px)"; ctx.drawImage(ghostCv, x0, y0, x1 - x0, y1 - y0); ctx.restore();
 }
 async function updateDelta() {
   if (!S.deltaOn || !S.lines) { S.delta = null; return; }
@@ -683,70 +732,49 @@ function visible(ring, r) { // cheap bbox cull
 function draw() {
   const { dpr, r } = fit(cv);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, r.width, r.height);           // sea
-  ctx.fillStyle = "#e8e4d8";                                                    // land
+  ctx.fillStyle = "#fbfbf9"; ctx.fillRect(0, 0, r.width, r.height);           // sea
+  ctx.fillStyle = "#ecebe6";                                                    // land
   for (const c of BM.countries) for (const ring of c.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.fill(); }
-  ctx.fillStyle = "#ffffff"; for (const l of BM.lakes) for (const ring of l.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.fill(); }
-  const [x0, y0] = proj(G.lat_max, G.lon_min), [x1, y1] = proj(G.lat_min, G.lon_max);
-  drawHatch(r, dpr, x0, y0, x1, y1);
-  ctx.strokeStyle = "rgba(92,89,80,.6)"; ctx.lineWidth = 0.7;           // country outlines
+  ctx.fillStyle = "#fbfbf9"; for (const l of BM.lakes) for (const ring of l.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.fill(); }
+  drawGhost();
+  ctx.strokeStyle = "rgba(60,58,52,.22)"; ctx.lineWidth = 0.6;          // country outlines
   for (const c of BM.countries) for (const ring of c.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.stroke(); }
   drawGL();
-  drawDelta(r, dpr);
   // top layer: labels, airports, events
   fit(topc); tctx.setTransform(dpr, 0, 0, dpr, 0, 0); tctx.clearRect(0, 0, r.width, r.height);
-  tctx.textAlign = "center"; tctx.textBaseline = "middle"; tctx.font = "600 11px system-ui, sans-serif"; tctx.fillStyle = "rgba(80,78,70,.5)";
+  tctx.textAlign = "center"; tctx.textBaseline = "middle"; tctx.font = "500 10px system-ui, sans-serif"; tctx.fillStyle = "rgba(60,58,52,.42)";
+  tctx.letterSpacing = "1.2px";
   const maxRank = 2 + Math.log2(Math.max(0.25, S.zoom)) * 2 + 2;
   for (const c of BM.countries) { if (c.rank > maxRank) continue; const [x, y] = proj(c.label[1], c.label[0]);
     if (x > 0 && y > 0 && x < r.width && y < r.height) tctx.fillText(c.name.toUpperCase(), x, y); }
-  tctx.font = "10px system-ui, sans-serif"; tctx.textAlign = "left";
+  tctx.letterSpacing = "0px"; tctx.textAlign = "left";
+  // only the hubs are labelled, to keep the map quiet; the airport picked is emphasised
   const sel = M.airports[S.airport - 1];
-  for (const [code, lat, lon] of M.airports.slice(0, 40)) { const [x, y] = proj(lat, lon);
+  for (const [code] of HUBS) { const a = M.airports.find(q => q[0] === code); if (!a) continue;
+    const [x, y] = proj(a[1], a[2]), hi = sel && sel[0] === code;
     if (x < -20 || y < -20 || x > r.width + 20 || y > r.height + 20) continue;
-    if (S.zoom < 0.7 && !(sel && sel[0] === code)) continue;
-    const hi = sel && sel[0] === code;
-    tctx.fillStyle = hi ? "#000000" : "#2b2a26"; tctx.beginPath(); tctx.arc(x, y, hi ? 3.5 : 2, 0, 7); tctx.fill();
-    tctx.fillStyle = hi ? "#000000" : "rgba(43,42,38,.85)"; tctx.font = hi ? "600 12px system-ui, sans-serif" : "10px system-ui, sans-serif";
-    tctx.fillText(code, x + 5, y - 6); }
+    if (S.zoom < 0.7 && !hi) continue;
+    tctx.fillStyle = hi ? "#1c1c1a" : "rgba(28,28,26,.7)"; tctx.beginPath(); tctx.arc(x, y, hi ? 3.5 : 2, 0, 7); tctx.fill();
+    tctx.font = hi ? "650 12px system-ui, sans-serif" : "500 10px system-ui, sans-serif";
+    tctx.lineWidth = 3; tctx.strokeStyle = "rgba(251,251,249,.85)"; tctx.strokeText(code, x + 5, y - 6);
+    tctx.fillStyle = hi ? "#1c1c1a" : "rgba(28,28,26,.72)"; tctx.fillText(code, x + 5, y - 6); }
   const from = M.days[S.sel[0]].date, to = M.days[S.sel[1]].date;
-  tctx.font = "700 11px system-ui, sans-serif"; tctx.textAlign = "left"; tctx.textBaseline = "middle";
+  tctx.font = "600 10px system-ui, sans-serif"; tctx.textAlign = "left"; tctx.textBaseline = "middle";
   for (const e of EV) { if (e.date < from || e.date > to) continue; const [x, y] = proj(e.lat, e.lon);
-    tctx.save(); tctx.translate(x, y); tctx.rotate(Math.PI / 4); tctx.fillStyle = EV_COLOR; tctx.strokeStyle = "#ffffff"; tctx.lineWidth = 3;
-    tctx.strokeRect(-6, -6, 12, 12); tctx.fillRect(-6, -6, 12, 12); tctx.restore();
+    tctx.save(); tctx.translate(x, y); tctx.rotate(Math.PI / 4); tctx.fillStyle = EV_COLOR; tctx.strokeStyle = "#ffffff"; tctx.lineWidth = 2;
+    tctx.strokeRect(-4.5, -4.5, 9, 9); tctx.fillRect(-4.5, -4.5, 9, 9); tctx.restore();
     const t = fmtD(e.date), tw = tctx.measureText(t).width;
-    tctx.fillStyle = "rgba(255,255,255,.92)"; tctx.beginPath(); tctx.roundRect(x + 10, y - 8, tw + 8, 16, 4); tctx.fill();
-    tctx.fillStyle = EV_COLOR; tctx.fillText(t, x + 14, y); }
+    tctx.fillStyle = EV_COLOR; tctx.beginPath(); tctx.roundRect(x + 10, y - 8, tw + 10, 16, 8); tctx.fill();
+    tctx.fillStyle = "#ffffff"; tctx.fillText(t, x + 15, y + 0.5); }
 }
 
 // ---------- legend + stats ----------
-function legend() {
-  // same width, colour and opacity formulas as the line shaders (fpw = flights per week)
-  const wk = 1;
-  const lev = fpw => Math.max(0, Math.min(1, Math.log(fpw / WEEK_LO) / Math.log(WEEK_HI / WEEK_LO)));
-  const w = fpw => Math.max(1, 2 * Math.min(R_MAX, wk * (0.45 + 2 * lev(fpw))));
-  const col = (fpw, k = 1) => { const t = lev(fpw), x = Math.min(1, fpw / WEEK_LO), rare = 0.25 + 0.75 * x * x * (3 - 2 * x);
-    const [lo, hi] = lineRamp();
-    return `rgba(${lo.map((v, i) => Math.round(v + (hi[i] - v) * t)).join(",")},${((0.6 + 0.4 * t) * rare * k).toFixed(2)})`; };
-  const ap = M.airports[S.airport - 1];
-  $("legendBody").innerHTML = `<div>One line per civil flight, takeoff to landing. <b>Thicker and darker = more flights per week</b> on that path.</div>
-    <div class="lineKey">${[[1, "1 / week"], [WEEK_LO, `${WEEK_LO}`], [50, "50"], [WEEK_HI, `${WEEK_HI}+`]]
-      .map(([f, t]) => `<span><i style="border-top:${w(f).toFixed(1)}px solid ${col(f)}"></i>${t}</span>`).join("")}</div>
-    <div class="lineKey"><span><i style="border-top:${w(50).toFixed(1)}px solid ${col(50, 0.3)}"></i>not heard by any receiver: straight join</span></div>
-    <div class="lineKey"><span><i class="hatch"></i>few or no receivers: exact paths unknown</span></div>
-    ${S.deltaOn ? `<div class="lineKey"><span><span class="dk" style="background:rgb(${MORE})"></span>more flights per day than in ${span(baseRange())}</span></div>
-      <div class="lineKey"><span><span class="dk" style="background:rgb(${LESS})"></span>fewer (red without a line: a route no longer flown)</span></div>` : ""}
-    <div class="lineKey"><span><b class="evk" style="font-size:14px">◆</b>event in the week shown (details and source in the date box)</span></div>
-    <p>An empty area can mean airlines avoid it <i>or</i> that no receivers cover it, so compare the same area over time.
-      Lines fade out beyond ~1,800 km from ${ap ? ap[0] : "Doha"}.</p>
-    <p><b>Gulf–Europe routes</b> (chart tab): flights between Gulf airports and Europe each day, by where they cross
-      latitude 34°N: west of Iraq (over Saudi Arabia, Jordan, Syria or Egypt), over Iraq, or over Iran. Few receivers
-      cover Iraq and Iran, so there the crossing point is often estimated from a straight join.</p>`;
-}
+function legend() { document.querySelectorAll(".baseTxt").forEach(e => e.textContent = span(baseRange())); }
 const fmtD = d => new Date(d + "T00:00:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 const span = ([a, b]) => a === b ? fmtD(M.days[a].date) : `${fmtD(M.days[a].date)} – ${fmtD(M.days[b].date)}`;
 function stats() { frameLabel(); }
 // Gulf<->Europe corridor counts [west, iraq, iran] summed over days i0..i1 (null if none recorded)
-const CORR = [["West of Iraq", "#2a78d6"], ["Over Iraq", "#eb6834"], ["Over Iran", "#1baf7a"]];
+const CORR = [["West of Iraq", "#b3b0a8", "west of Iraq"], ["Over Iraq", "#e07a2c", "Iraq"], ["Over Iran", "#1f9a86", "Iran"]];
 function corrSum(i0, i1) { const c = [0, 0, 0]; let any = false;
   for (const d of M.days.slice(i0, i1 + 1)) if (d.corr) { any = true; d.corr.forEach((v, k) => c[k] += v); }
   return any && c[0] + c[1] + c[2] ? c : null; }
@@ -761,31 +789,31 @@ function timeline() {
   const max = corr ? 1 : Math.max(...M.days.map(d => d.legs)) * 1.05;
   svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const y = v => pad.t + (H - pad.t - pad.b) * (1 - v / max);
-  for (const t of corr ? [0, 0.5, 1] : [0, max / 2]) { el("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#e2dfd6", "stroke-width": 1 }, svg);
-    el("text", { x: pad.l - 6, y: y(t) + 3, "text-anchor": "end", fill: "#75736b", "font-size": 10 }, svg).textContent = corr ? `${t * 100}%` : Math.round(t).toLocaleString(); }
+  for (const t of corr ? [0, 0.5, 1] : [0, max / 2]) { el("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#ebe8e1", "stroke-width": 1 }, svg);
+    el("text", { x: pad.l - 8, y: y(t) + 3, "text-anchor": "end", fill: "#8e8b83", "font-size": 10 }, svg).textContent = corr ? `${t * 100}%` : Math.round(t).toLocaleString(); }
   const inR = (i, [a, b]) => i >= a && i <= b;
   M.days.forEach((d, i) => {
     const gapW = bw < 6 ? 0.4 : 1.5, x = pad.l + i * bw + gapW / 3, bwid = Math.max(0.6, bw - gapW);   // thinner gaps on phones
     if (corr) {   // 100% stacked: west at the bottom, then Iraq, then Iran; other weeks faded
       const c = d.corr, tot = c ? c[0] + c[1] + c[2] : 0;
-      const g = el("g", { opacity: inR(i, S.sel) ? 1 : 0.4 }, svg);
-      el("title", {}, g).textContent = tot ? `${fmtD(d.date)}: ${CORR.map(([nm], k) => `${nm.toLowerCase()} ${pct(c[k], tot)}`).join(", ")} of ${tot} Gulf–Europe flights` : `${fmtD(d.date)}: no data`;
+      const g = el("g", { opacity: inR(i, S.sel) ? 1 : 0.45 }, svg);
+      el("title", {}, g).textContent = tot ? `${fmtD(d.date)}: ${CORR.map(([, , short], k) => `${pct(c[k], tot)} ${short}`).join(", ")} of ${tot} Gulf–Europe flights` : `${fmtD(d.date)}: no data`;
       let acc = 0;
       if (tot) CORR.forEach(([, colr], k) => { if (!c[k]) return;
         const y0 = y(acc / tot), y1 = y((acc + c[k]) / tot); acc += c[k];
         el("rect", { x, y: y1, width: bwid, height: Math.max(0.5, y0 - y1 - (acc < tot ? 1 : 0)), fill: colr }, g); });
     } else {
-      const r = el("rect", { x, y: y(d.legs), width: bwid, height: Math.max(1, y(0) - y(d.legs)), fill: inR(i, S.sel) ? "#2f6fc4" : "#d6d3c9", rx: Math.min(2, bw / 3) }, svg);
+      const r = el("rect", { x, y: y(d.legs), width: bwid, height: Math.max(1, y(0) - y(d.legs)), fill: inR(i, S.sel) ? "#1c1c1a" : "#dad7cf", rx: Math.min(1.5, bw / 3) }, svg);
       el("title", {}, r).textContent = `${fmtD(d.date)}: ${d.legs.toLocaleString()} flights`;
     }
     const dt = new Date(d.date + "T00:00:00Z");
-    if (dt.getUTCDate() === 1) el("text", { x: pad.l + i * bw, y: H - 4, fill: "#75736b", "font-size": 10 }, svg).textContent = dt.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" });
+    if (dt.getUTCDate() === 1) el("text", { x: pad.l + i * bw, y: H - 3, fill: "#8e8b83", "font-size": 10 }, svg).textContent = dt.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" });
   });
   // outline round the week shown, so it reads as a playhead
   el("rect", { x: pad.l + S.sel[0] * bw - 1, y: pad.t - 3, width: (S.sel[1] - S.sel[0] + 1) * bw + 0.5, height: y(0) - pad.t + 5,
-    fill: "none", stroke: corr ? "#1f1f1c" : "#2f6fc4", "stroke-width": 1.5, rx: 3 }, svg);
+    fill: "none", stroke: "#1c1c1a", "stroke-width": corr ? 1.5 : 0, rx: 3 }, svg);
   for (const e of EV) { const i = M.days.findIndex(d => d.date === e.date); if (i < 0) continue;
-    const t = el("text", { x: pad.l + (i + 0.5) * bw, y: 10, "text-anchor": "middle", fill: EV_COLOR, "font-size": 12 }, svg); t.textContent = "◆";
+    const t = el("text", { x: pad.l + (i + 0.5) * bw, y: 9, "text-anchor": "middle", fill: EV_COLOR, "font-size": 9 }, svg); t.textContent = "◆";
     el("title", {}, t).textContent = `${fmtD(e.date)}: ${e.title}`; }
   svg._geo = { pad, bw, n };
 }
@@ -801,11 +829,15 @@ function frameLabel() {
   if (S.airport) { if (!mine) fl = null; else if (L.sampled) { fl = S.legsShown * L.total / L.nl; est = "≈ "; } else fl = S.legsShown; }
   const ap = S.airport ? ` to/from ${M.airports[S.airport - 1][0]}` : "";
   const c = corrSum(S.sel[0], S.sel[1]), tot = c ? c[0] + c[1] + c[2] : 0;
-  $("frame").innerHTML = `${span(S.sel)}<small>week ${S.fi + 1} of ${S.frames.length}` +
-    (fl === null ? "" : ` · ${est}${Math.round(fl).toLocaleString()} flights${ap}`) + `</small>` +
-    (S.deltaOn ? `<div class="corr"><span class="dk" style="background:rgb(${MORE})"></span>more <span class="dk" style="background:rgb(${LESS});margin-left:6px"></span>fewer flights than ${span(baseRange())}${S.fi < BASE_WEEKS ? " (this week is part of it)" : ""}</div>` : "") +
-    (c ? `<div class="corr">Gulf–Europe: ${CORR.map(([nm, colr], k) => `<span class="cs" style="background:${colr}"></span>${nm.replace("Over ", "")} ${pct(c[k], tot)}`).join(" ")}</div>` : "") +
-    evs.map(e => `<div class="ev"><b>◆</b> ${fmtD(e.date)}: ${esc(e.title)}${e.url ? ` <a href="${esc(e.url)}" target="_blank" rel="noopener">source</a>` : ""}</div>`).join("");
+  const flTxt = fl === null ? "" : ` · ${est}${Math.round(fl).toLocaleString()} flights${ap}`;
+  const inBase = S.fi < BASE_WEEKS;
+  $("frame").innerHTML = `<div class="wk">${span(S.sel)}</div><div class="sub">Week ${S.fi + 1} of ${S.frames.length}${flTxt}</div>` +
+    (S.deltaOn ? `<div class="key"><span><i style="background:rgb(${MORE})"></i>More</span><span><i style="background:rgb(${LESS})"></i>Fewer</span>` +
+      `<span class="vs">${inBase ? "reference weeks" : "than " + span(baseRange())}</span></div>` : "") +
+    (c ? `<div class="corr"><div class="lbl"><span>Gulf ↔ Europe flights</span></div>
+      <div class="bar">${CORR.map(([, colr], k) => c[k] ? `<span style="flex:${c[k]};background:${colr}"></span>` : "").join("")}</div>
+      <div class="nums">${CORR.map(([, colr, short], k) => `<span><span class="sw" style="background:${colr}"></span><b>${pct(c[k], tot)}</b> ${short}</span>`).join("")}</div></div>` : "") +
+    (evs.length ? `<div class="evs">${evs.map(e => `<div class="ev">${e.url ? `<a class="d" href="${esc(e.url)}" target="_blank" rel="noopener" title="Source">${fmtD(e.date)} ↗</a>` : `<span class="d">${fmtD(e.date)}</span>`}<span class="t">${esc(e.title)}</span></div>`).join("")}</div>` : "");
 }
 // weeks are 7-day windows ending on the last day; days before the first full week are left out
 function weekFrames() { const out = []; for (let e = M.days.length - 1; e - 6 >= 0; e -= 7) out.unshift([e - 6, e]); return out; }
@@ -826,7 +858,7 @@ let token = 0;
 async function refresh() {
   const my = ++token; if (!S.playing) $("loading").style.display = "block";
   const L = await loadLines(S.sel); if (my !== token) return;
-  S.lines = L; S.cov = coverage(L); S.hatch = hatchMask(S.cov); uploadLines(L);
+  S.lines = L; S.cov = coverage(L); uploadLines(L);
   await updateDelta(); if (my !== token) return;
   $("loading").style.display = "none"; legend(); stats(); draw();
 }
@@ -836,17 +868,23 @@ $("chartTab").addEventListener("click", e => { const b = e.target.closest("butto
   S.chart = b.dataset.v; [...$("chartTab").children].forEach(c => c.classList.toggle("on", c === b));
   $("corrKey").classList.toggle("hide", S.chart !== "corr"); timeline(); });
 $("airport").onchange = async e => { S.airport = +e.target.value; buildIndex(); await updateDelta(); stats(); legend(); draw(); };
-$("deltaOn").onchange = async e => { S.deltaOn = e.target.checked; await updateDelta(); stats(); legend(); draw(); };
+$("mode").addEventListener("click", async e => { const b = e.target.closest("button"); if (!b) return;
+  [...$("mode").children].forEach(c => c.classList.toggle("on", c === b));
+  S.deltaOn = b.dataset.v === "delta"; await updateDelta(); stats(); draw(); });
+$("aboutBtn").onclick = () => $("about").showModal();
+$("aboutX").onclick = () => $("about").close();
+$("about").addEventListener("click", e => { if (e.target === $("about")) $("about").close(); });
 // Playback: one frame per week, drawn from a lighter random sample while preloading the next week. It starts
 // from the week after the one shown (from the first week if the last one is shown). Pausing, or reaching the
 // end, leaves that week on screen, reloaded in full.
+function setPlayIcon(on) { $("play").innerHTML = on ? PAUSE_ICON : PLAY_ICON; $("play").setAttribute("aria-label", on ? "Pause" : "Play week by week"); }
 function stopPlay() {
   if (!S.playing) return false;
-  S.playing = null; $("play").textContent = "▶ Play"; return true;
+  S.playing = null; setPlayIcon(false); return true;
 }
 $("play").onclick = async () => {
   if (stopPlay()) return refresh();
-  const F = S.frames, me = S.playing = {}; $("play").textContent = "❚❚ Pause";
+  const F = S.frames, me = S.playing = {}; setPlayIcon(true);
   for (let f = S.fi + 1 < F.length ? S.fi + 1 : 0; f < F.length && S.playing === me; f++) {
     const t0 = performance.now(); showFrame(f);
     await refresh();
@@ -892,7 +930,7 @@ function hover(x, y) {
   else if (S.deltaOn && S.delta) {
     const [lat, lon] = unproj(x, y), D = S.delta, c = Math.floor((lon - G.lon_min) / DELTA_RES), r = Math.floor((G.lat_max - lat) / DELTA_RES);
     if (c >= 0 && r >= 0 && c < D.cur.w && r < D.cur.h) { const i = r * D.cur.w + c, a = D.cur.a[i], b = D.base.a[i];
-      if (Math.max(a, b) >= 0.5) html = `This week <b>${fmtN(a)}</b> flights/day<br>${span(baseRange())}: <b>${fmtN(b)}</b>/day`; }
+      if (Math.max(a, b) >= 0.5) html = `<b>${fmtN(a)}</b> flights a day this week<br><span class="s">${fmtN(b)} a day in ${span(baseRange())}</span>`; }
   }
   if (!html) { tip.style.display = "none"; return; }
   tip.innerHTML = html; tip.style.display = "block";
@@ -909,13 +947,12 @@ function hover(x, y) {
   if (!n) { $("source").textContent = "No data yet: the first pipeline run has not finished."; return; }
   M.airports = M.airports || [];
   if (!gl) { $("source").textContent = "This map needs WebGL2, which this browser doesn't support."; return; }
-  if (matchMedia("(max-width: 700px)").matches) $("legend").open = false;   // phones: start with the map clear
+  setPlayIcon(false);
   for (const [code, name] of HUBS) { const i = M.airports.findIndex(a => a[0] === code); if (i < 0) continue;
     const o = document.createElement("option"); o.value = i + 1; o.textContent = `${name} (${code})`; $("airport").appendChild(o); }
-  $("corrKey").innerHTML = CORR.map(([nm, colr]) => `<span class="cs" style="background:${colr}"></span>${nm}`).join(" ");
+  $("corrKey").innerHTML = CORR.map(([nm, colr]) => `<span><span class="sw" style="background:${colr}"></span>${nm}</span>`).join("");
   $("demo").classList.toggle("hide", !M.demo);
-  $("kEvt").classList.toggle("hide", !EV.length);
-  $("source").textContent = `${span([0, n - 1])}, updated daily · ${M.demo ? "demo data" : "data: " + M.source}`;
+  $("source").textContent = `${span([0, n - 1])} · updated daily`;
   S.frames = weekFrames();
   if (!S.frames.length) S.frames = [[0, n - 1]];   // less than a week of data
   showFrame(S.frames.length - 1); await refresh();

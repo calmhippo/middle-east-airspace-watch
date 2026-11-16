@@ -104,18 +104,30 @@ GitHub Pages source = "GitHub Actions" (already set).
   "week N of M · flights" (all flights: from manifest totals; airport filter: loaded lines, ≈ scaled while playing),
   the week's Gulf–Europe corridor split, and that week's events with source links. Only other control: the airport
   filter, cut to 13 hubs (HUBS in the viewer, looked up by code), now in the header.
-- Change map (Nov 16, user: effects too hard to see; wanted deltas, baseline traffic still visible, heat-map colour for
-  routes added/removed). "Highlight changes" (S.deltaOn, default on): lines drawn in greys (GREY_LO/HI via u_lo/u_hi),
-  and #delta canvas (CSS mix-blend-mode multiply, between #gl and #top) tints each 0.1° cell blue (MORE, more flights/day
-  than the baseline) or red (LESS, fewer). Baseline = first BASE_WEEKS=4 week frames (fixed, so a new corridor stays blue;
+- Design (Nov 16 redesign, user: "eyesore", wants minimal, beautiful, readable from visuals alone): "quiet atlas".
+  Tokens in :root (paper/ink neutrals, --more blue, --less red; single light theme, system UI font, no deps). Header =
+  name + period, then airport select, Changes|Traffic segmented control, About (a <dialog> holding all explanation:
+  line meaning, colours, events, corridors, coverage caveat, data). Map: sea #fbfbf9, land #ecebe6, faint borders,
+  small letter-spaced country names, only HUBS labelled. One floating week card (#frame: date, week/flights, colour key,
+  Gulf<->Europe mini stacked bar, events with the date linking to the source). Dock: text tabs, round ink play button,
+  bars ink for the selected week. No hatching any more (removed for clutter; caveat lives in About). On screens <700 px
+  base() fits the box below a 150 px band reserved for the card.
+- Change map (Nov 16, user: effects too hard to see; wanted deltas, baseline traffic still visible, colour for routes
+  added/removed). Changes mode (S.deltaOn, default): lines in quiet greys (GREY_LO/HI via u_lo/u_hi); the comp shader
+  samples an RG8 texture (S.deltaTex, R = more, G = fewer, 0..1 per 0.1° cell, faded over the outer 1.5° of the box) and
+  tints the lines blue (MORE) or red (LESS); unchanged lines recede (alpha 0.7). Routes largely gone get a faint blurred
+  red trace on #base (ghostCv). The first try (a multiply-blended colour wash over everything) was rejected as an eyesore.
+  lowCoverage() now clamps to the box edge outside it (outside used to count as covered, which showed the box as a rectangle). Baseline = first BASE_WEEKS=4 week frames (fixed, so a new corridor stays blue;
   rolling would flash then fade), loaded once as a ~120k-flight sample. flowField(): each flight once per cell, unheard
   joins included (so receiver changes don't read as route changes), per day, 1-2-1 blur x2. Coloured only if
   |d|/max >= ~0.2-0.7 and |d| >= ~0.6-4 flights/day (smoothstep ramps); fades with FADE_KM and over 1.5° at the box edge.
   ~270 ms per field. Hover shows this week vs baseline flights/day. Diverging pair = dataviz blue<->red.
-- Events: black EV_COLOR #1f1f1c diamonds (white ring, date in a white pill), because red now means "fewer" (they were
-  red for a few hours on Nov 16 at the user's request; the switch was explained to the user).
+- Events: ink diamonds with a white ring and an ink date pill, because red means "fewer" (they were red for a few hours
+  on Nov 16 at the user's request; the switch was explained to the user).
+- Corridor colours (chart + card): west of Iraq grey #b3b0a8, Iraq orange #e07a2c, Iran teal #1f9a86, so blue/red keep
+  one meaning site-wide.
 - Chart tabs: "Flights per day" / "Gulf–Europe routes" (100% stacked daily bars from manifest days[].corr = [west, iraq,
-  iran]; colours = dataviz categorical slots 1-3 #2a78d6/#eb6834/#1baf7a, validated). Both share the playhead.
+  iran]). Both share the playhead.
 - Gulf–Europe corridors: pipeline/corridors.py, called by `update.py manifest` (~2 s for 97 days; keeps the old value
   once line files are pruned). Leg = one end in Gulf box (22–30.5N, 46–57.5E), other in Europe (36–72N, 15W–30E);
   corridor = where it first crosses 34N: west <40.5E, Iraq 40.5–46E, Iran ≥46E. Joins count (crossings over Iraq/Iran
@@ -123,8 +135,7 @@ GitHub Pages source = "GitHub Actions" (already set).
   to overflights Oct 15); Iran ~0–4%; ~450–500 Gulf–Europe legs/day.
   Removed Nov 16 (user agreed): range presets (1 day / 7 / 30 / All), Line width slider, "Mark unheard stretches"
   (shader u_gaps is now always 0; the code path is still there).
-- Legend + "reading this map" caveats are one collapsible <details id="legend">, closed by default under 700 px wide
-  (user, Nov 16: on phones the legend covered the whole map). Touch: one finger pans, two fingers pinch-zoom.
+- Touch: one finger pans, two fingers pinch-zoom. (The on-map legend panel was removed; About replaces it.)
 - Play: from the week after the one shown (from week 1 if on the last), FRAME_MS=1500 per week, PLAY_MAX_LINES=30k
   sample, preloads the next week. Pause/end = that week, reloaded in full.
 - `MAX_LINES = 150000`: above it, fewer shards per day are loaded (random sample, stated in the UI).
