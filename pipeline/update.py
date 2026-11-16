@@ -6,7 +6,8 @@
       data/days/, newest first: [{"date": "2026-11-06", "urls": [".aa", ".ab"]}, ...]
 
   python pipeline/update.py manifest
-      Rebuild data/manifest.json (list of available days + daily totals + grid spec).
+      Rebuild data/manifest.json (list of available days + daily totals + grid spec), including each day's
+      Gulf<->Europe corridor counts ("corr": [west, iraq, iran], see corridors.py).
 """
 import argparse
 import datetime as dt
@@ -80,15 +81,24 @@ def prune_lines():
 
 def manifest(demo=False, source="adsb.lol globe_history (ODbL 1.0)"):
     from airports import AIRPORTS
+    from corridors import day_counts
     prune_lines()
     lines = set(os.listdir(LINES_DIR)) if os.path.isdir(LINES_DIR) else set()
+    # corridor counts come from the line files; keep the earlier value once a day's lines are pruned
+    old = {}
+    try:
+        with open(os.path.join(ROOT, "data", "manifest.json")) as fh:
+            old = {d["date"]: d.get("corr") for d in json.load(fh).get("days", [])}
+    except (OSError, ValueError):
+        pass
     days = []
     for f in sorted(os.listdir(DAYS_DIR)):
         if f.endswith(".json"):
             with open(os.path.join(DAYS_DIR, f)) as fh:
                 d = json.load(fh)
             shards = sum(1 for k in range(8) if f"{d['date']}.s{k}.bin" in lines)
-            days.append({"date": d["date"], "legs": d["legs"], "aircraft": d["aircraft"], "shards": shards})
+            corr = day_counts(LINES_DIR, d["date"]) if shards else old.get(d["date"])
+            days.append({"date": d["date"], "legs": d["legs"], "aircraft": d["aircraft"], "shards": shards, "corr": corr})
     m = {"generated": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
          "source": source, "demo": demo,
          "grid": spec(), "airports": [list(a) for a in AIRPORTS], "days": days}

@@ -13,12 +13,13 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--surface); color: var(--text);
     font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  body { display: grid; grid-template-rows: auto auto 1fr auto; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh; }
+  body { display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh; }
   header { padding: 12px 16px 6px; display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
   h1 { font-size: 16px; font-weight: 600; margin: 0; }
   .meta { color: var(--text-3); font-size: 12px; }
   .demo { background: #fbe3b4; color: #6b4300; padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; }
-  .bar { display: flex; gap: 10px; align-items: center; padding: 6px 16px 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 8px; align-items: center; }
+  #airportCtl { margin-left: auto; }
   .seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px; }
   .seg button { background: none; border: 0; color: var(--text-2); padding: 4px 10px; border-radius: 4px; cursor: pointer; font: inherit; }
   .seg button.on { background: var(--on); color: var(--text); font-weight: 600; }
@@ -69,12 +70,18 @@
     padding: 6px 12px; font-size: 20px; font-weight: 600; color: var(--text); z-index: 2; font-variant-numeric: tabular-nums; }
   #frame small { display: block; font-size: 11px; font-weight: 400; color: var(--text-3); }
   #frame .ev { font-size: 12px; font-weight: 400; color: var(--text-2); margin-top: 4px; line-height: 1.35; }
+  #frame .ev b, .evk { color: var(--red); }
+  #frame .corr { font-size: 11px; font-weight: 400; color: var(--text-2); margin-top: 3px; }
+  .cs { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin: 0 3px 0 6px; vertical-align: -1px; }
+  .cs:first-child { margin-left: 0; }
+  .seg.small button { padding: 2px 8px; font-size: 12px; }
+  #corrKey { color: var(--text-2); }
   #frame .ev a { color: var(--text-3); white-space: nowrap; }
   @media (max-width: 700px) {
-    header { padding: 10px 12px 4px; gap: 4px 12px; } .bar { padding: 6px 12px 8px; gap: 8px; }
+    header { padding: 10px 12px 8px; gap: 4px 12px; } #airportCtl { margin-left: 0; }
     #frame { font-size: 15px; padding: 5px 10px; } #frame .ev { font-size: 11px; }
     footer { padding: 4px 12px 8px; } #timeline { height: 64px; } .player .btn { width: 84px; }
-    #airportCtl .lbl, #kEvt { display: none; } .stat { flex: 1 1 auto; }
+    #airportCtl .lbl, #kEvt, #tlHint { display: none; } #frame .corr { font-size: 10px; }
   }
 </style>
 </head>
@@ -83,12 +90,8 @@
   <h1>Middle East Airspace Watch</h1>
   <span class="meta" id="source">Loading…</span>
   <span class="demo hide" id="demo">SYNTHETIC DEMO DATA, not real flights</span>
+  <span class="ctl" id="airportCtl"><span class="lbl">Flights</span><select id="airport" aria-label="Show flights to or from"><option value="0">All flights</option></select></span>
 </header>
-
-<div class="bar">
-  <span class="ctl" id="airportCtl"><span class="lbl">Flights</span><select id="airport"><option value="0">All flights</option></select></span>
-  <div class="stat" id="stat"></div>
-</div>
 
 <div id="mapwrap">
   <canvas id="base" aria-label="Map of flights over the Middle East"></canvas>
@@ -103,8 +106,12 @@
 
 <footer>
   <div class="tlhead">
-    <span>Flights per day crossing the region. Tap or drag to pick a week.</span>
-    <span class="key hide" id="kEvt"><span style="color:var(--text)">◆</span>Event</span>
+    <div class="seg small" id="chartTab" role="tablist">
+      <button data-v="flights" class="on" role="tab">Flights per day</button><button data-v="corr" role="tab">Gulf–Europe routes</button>
+    </div>
+    <span id="corrKey" class="hide"></span>
+    <span id="tlHint">Tap or drag the chart to pick a week.</span>
+    <span class="key hide" id="kEvt"><span class="evk">◆</span>Event</span>
   </div>
   <div class="player">
     <button class="btn primary" id="play" title="Play week by week through the whole period">▶ Play</button>
@@ -118,8 +125,12 @@ const $ = id => document.getElementById(id);
 const MAX_LINES = 150000;            // above this, a random sample of flights is drawn
 const PLAY_MAX_LINES = 30000;        // ...and this while the animation plays (about half of each week)
 const FRAME_MS = 1500;               // time per week in the animation
-const S = { sel: [0, 0], fi: 0, frames: [], lineCache: new Map(), zoom: 1, panX: 0, panY: 0, playing: null, airport: 0, lines: null };
+const S = { chart: "flights", sel: [0, 0], fi: 0, frames: [], lineCache: new Map(), zoom: 1, panX: 0, panY: 0, playing: null, airport: 0, lines: null };
 let G, M, BM, EV = [];
+const EV_COLOR = "#c94343";   // events: red so they stand out from the blue flight lines
+// airports offered in the "Flights" filter: the main hubs (indices into manifest.airports are looked up by code)
+const HUBS = [["DOH", "Doha"], ["DXB", "Dubai"], ["AUH", "Abu Dhabi"], ["KWI", "Kuwait"], ["BAH", "Bahrain"], ["MCT", "Muscat"],
+  ["RUH", "Riyadh"], ["JED", "Jeddah"], ["IST", "Istanbul"], ["CAI", "Cairo"], ["TLV", "Tel Aviv"], ["AMM", "Amman"], ["IKA", "Tehran"]];
 
 // ---------- data ----------
 async function getJSON(p) { const r = await fetch(p); if (!r.ok) throw new Error(p + " " + r.status); return r.json(); }
@@ -163,7 +174,7 @@ async function loadLines(range) {
     pts.set(s.pts, 2 * pi); gap.set(s.gap, pi); orig.set(s.orig, li); dest.set(s.dest, li); len.set(s.lens, li);
     for (let j = 0; j < s.nl; j++) { start[li + j] = pi; pi += s.lens[j]; }
     li += s.nl; }
-  return { nl, np, pts, gap, start, len, orig, dest, total, days: days.length, sampled: per < 4 && nl < total };
+  return { nl, np, pts, gap, start, len, orig, dest, total, days: days.length, sampled: per < 4 && nl < total, range: [...range] };
 }
 
 // Receiver coverage on a COV_RES° grid over the analysis box, from the loaded lines: the share of drawn
@@ -602,9 +613,13 @@ function draw() {
     tctx.fillStyle = hi ? "#000000" : "rgba(43,42,38,.85)"; tctx.font = hi ? "600 12px system-ui, sans-serif" : "10px system-ui, sans-serif";
     tctx.fillText(code, x + 5, y - 6); }
   const from = M.days[S.sel[0]].date, to = M.days[S.sel[1]].date;
+  tctx.font = "700 11px system-ui, sans-serif"; tctx.textAlign = "left"; tctx.textBaseline = "middle";
   for (const e of EV) { if (e.date < from || e.date > to) continue; const [x, y] = proj(e.lat, e.lon);
-    tctx.save(); tctx.translate(x, y); tctx.rotate(Math.PI / 4); tctx.fillStyle = "#2b2a26"; tctx.strokeStyle = "#ffffff"; tctx.lineWidth = 2;
-    tctx.strokeRect(-4, -4, 8, 8); tctx.fillRect(-4, -4, 8, 8); tctx.restore(); }
+    tctx.fillStyle = "rgba(201,67,67,.18)"; tctx.beginPath(); tctx.arc(x, y, 13, 0, 7); tctx.fill();
+    tctx.save(); tctx.translate(x, y); tctx.rotate(Math.PI / 4); tctx.fillStyle = EV_COLOR; tctx.strokeStyle = "#ffffff"; tctx.lineWidth = 2;
+    tctx.strokeRect(-5.5, -5.5, 11, 11); tctx.fillRect(-5.5, -5.5, 11, 11); tctx.restore();
+    tctx.lineWidth = 3; tctx.strokeStyle = "rgba(255,255,255,.9)"; tctx.strokeText(fmtD(e.date), x + 11, y);
+    tctx.fillStyle = EV_COLOR; tctx.fillText(fmtD(e.date), x + 11, y); }
 }
 
 // ---------- legend + stats ----------
@@ -621,41 +636,57 @@ function legend() {
       .map(([f, t]) => `<span><i style="border-top:${w(f).toFixed(1)}px solid ${col(f)}"></i>${t}</span>`).join("")}</div>
     <div class="lineKey"><span><i style="border-top:${w(50).toFixed(1)}px solid ${col(50, 0.3)}"></i>not heard by any receiver: straight join</span></div>
     <div class="lineKey"><span><i class="hatch"></i>few or no receivers: exact paths unknown</span></div>
+    <div class="lineKey"><span><b class="evk" style="font-size:13px">◆</b>event in the week shown (details and source in the date box)</span></div>
     <p>An empty area can mean airlines avoid it <i>or</i> that no receivers cover it, so compare the same area over time.
-      Lines fade out beyond ~1,800 km from ${ap ? ap[0] : "Doha"}.</p>`;
+      Lines fade out beyond ~1,800 km from ${ap ? ap[0] : "Doha"}.</p>
+    <p><b>Gulf–Europe routes</b> (chart tab): flights between Gulf airports and Europe each day, by where they cross
+      latitude 34°N: west of Iraq (over Saudi Arabia, Jordan, Syria or Egypt), over Iraq, or over Iran. Few receivers
+      cover Iraq and Iran, so there the crossing point is often estimated from a straight join.</p>`;
 }
 const fmtD = d => new Date(d + "T00:00:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
 const span = ([a, b]) => a === b ? fmtD(M.days[a].date) : `${fmtD(M.days[a].date)} – ${fmtD(M.days[b].date)}`;
-function stats() {
-  const L = S.lines; if (!L) { $("stat").textContent = ""; return; }
-  const ap = S.airport ? ` to/from <b>${M.airports[S.airport - 1][0]}</b>` : "";
-  $("stat").innerHTML = `<b>${S.legsShown.toLocaleString()}</b> flights${ap} this week` +
-    (L.sampled ? ` <span style="color:var(--text-3)">(random sample of ${Math.round(L.nl / L.total * 100)}% while playing)</span>` : "");
-}
+function stats() { frameLabel(); }
+// Gulf<->Europe corridor counts [west, iraq, iran] summed over days i0..i1 (null if none recorded)
+const CORR = [["West of Iraq", "#2a78d6"], ["Over Iraq", "#eb6834"], ["Over Iran", "#1baf7a"]];
+function corrSum(i0, i1) { const c = [0, 0, 0]; let any = false;
+  for (const d of M.days.slice(i0, i1 + 1)) if (d.corr) { any = true; d.corr.forEach((v, k) => c[k] += v); }
+  return any && c[0] + c[1] + c[2] ? c : null; }
+const pct = (v, t) => `${Math.round(100 * v / t)}%`;
 
 // ---------- timeline ----------
 const svg = $("timeline"); const NS = "http://www.w3.org/2000/svg";
 function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; }
 function timeline() {
   const W = svg.clientWidth, H = svg.clientHeight || 86, pad = { l: 40, r: 8, t: 14, b: 18 }, n = M.days.length;
-  const bw = (W - pad.l - pad.r) / n, max = Math.max(...M.days.map(d => d.legs)) * 1.05;
+  const bw = (W - pad.l - pad.r) / n, corr = S.chart === "corr";
+  const max = corr ? 1 : Math.max(...M.days.map(d => d.legs)) * 1.05;
   svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const y = v => pad.t + (H - pad.t - pad.b) * (1 - v / max);
-  for (const t of [0, max / 2]) { el("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#e2dfd6", "stroke-width": 1 }, svg);
-    el("text", { x: pad.l - 6, y: y(t) + 3, "text-anchor": "end", fill: "#75736b", "font-size": 10 }, svg).textContent = Math.round(t).toLocaleString(); }
+  for (const t of corr ? [0, 0.5, 1] : [0, max / 2]) { el("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#e2dfd6", "stroke-width": 1 }, svg);
+    el("text", { x: pad.l - 6, y: y(t) + 3, "text-anchor": "end", fill: "#75736b", "font-size": 10 }, svg).textContent = corr ? `${t * 100}%` : Math.round(t).toLocaleString(); }
   const inR = (i, [a, b]) => i >= a && i <= b;
   M.days.forEach((d, i) => {
-    const col = inR(i, S.sel) ? "#2f6fc4" : "#d6d3c9";
-    const r = el("rect", { x: pad.l + i * bw + 0.5, y: y(d.legs), width: Math.max(1, bw - 1.5), height: Math.max(1, y(0) - y(d.legs)), fill: col, rx: Math.min(2, bw / 3) }, svg);
-    el("title", {}, r).textContent = `${fmtD(d.date)}: ${d.legs.toLocaleString()} flights`;
+    const gapW = bw < 6 ? 0.4 : 1.5, x = pad.l + i * bw + gapW / 3, bwid = Math.max(0.6, bw - gapW);   // thinner gaps on phones
+    if (corr) {   // 100% stacked: west at the bottom, then Iraq, then Iran; other weeks faded
+      const c = d.corr, tot = c ? c[0] + c[1] + c[2] : 0;
+      const g = el("g", { opacity: inR(i, S.sel) ? 1 : 0.4 }, svg);
+      el("title", {}, g).textContent = tot ? `${fmtD(d.date)}: ${CORR.map(([nm], k) => `${nm.toLowerCase()} ${pct(c[k], tot)}`).join(", ")} of ${tot} Gulf–Europe flights` : `${fmtD(d.date)}: no data`;
+      let acc = 0;
+      if (tot) CORR.forEach(([, colr], k) => { if (!c[k]) return;
+        const y0 = y(acc / tot), y1 = y((acc + c[k]) / tot); acc += c[k];
+        el("rect", { x, y: y1, width: bwid, height: Math.max(0.5, y0 - y1 - (acc < tot ? 1 : 0)), fill: colr }, g); });
+    } else {
+      const r = el("rect", { x, y: y(d.legs), width: bwid, height: Math.max(1, y(0) - y(d.legs)), fill: inR(i, S.sel) ? "#2f6fc4" : "#d6d3c9", rx: Math.min(2, bw / 3) }, svg);
+      el("title", {}, r).textContent = `${fmtD(d.date)}: ${d.legs.toLocaleString()} flights`;
+    }
     const dt = new Date(d.date + "T00:00:00Z");
     if (dt.getUTCDate() === 1) el("text", { x: pad.l + i * bw, y: H - 4, fill: "#75736b", "font-size": 10 }, svg).textContent = dt.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" });
   });
   // outline round the week shown, so it reads as a playhead
   el("rect", { x: pad.l + S.sel[0] * bw - 1, y: pad.t - 3, width: (S.sel[1] - S.sel[0] + 1) * bw + 0.5, height: y(0) - pad.t + 5,
-    fill: "none", stroke: "#2f6fc4", "stroke-width": 1.5, rx: 3 }, svg);
+    fill: "none", stroke: corr ? "#1f1f1c" : "#2f6fc4", "stroke-width": 1.5, rx: 3 }, svg);
   for (const e of EV) { const i = M.days.findIndex(d => d.date === e.date); if (i < 0) continue;
-    const t = el("text", { x: pad.l + (i + 0.5) * bw, y: 10, "text-anchor": "middle", fill: "#2b2a26", "font-size": 10 }, svg); t.textContent = "◆";
+    const t = el("text", { x: pad.l + (i + 0.5) * bw, y: 10, "text-anchor": "middle", fill: EV_COLOR, "font-size": 12 }, svg); t.textContent = "◆";
     el("title", {}, t).textContent = `${fmtD(e.date)}: ${e.title}`; }
   svg._geo = { pad, bw, n };
 }
@@ -664,8 +695,17 @@ function frameLabel() {
   const from = M.days[S.sel[0]].date, to = M.days[S.sel[1]].date;
   const evs = EV.filter(e => e.date >= from && e.date <= to);
   const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-  $("frame").innerHTML = `${span(S.sel)}<small>week ${S.fi + 1} of ${S.frames.length}</small>` +
-    evs.map(e => `<div class="ev">◆ ${fmtD(e.date)}: ${esc(e.title)}${e.url ? ` <a href="${esc(e.url)}" target="_blank" rel="noopener">source</a>` : ""}</div>`).join("");
+  // flights this week: all flights from the daily totals; for one airport, from the loaded lines (scaled up while
+  // playing, when only a sample is loaded)
+  const L = S.lines, mine = L && L.range && L.range[0] === S.sel[0] && L.range[1] === S.sel[1];
+  let fl = M.days.slice(S.sel[0], S.sel[1] + 1).reduce((t, d) => t + d.legs, 0), est = "";
+  if (S.airport) { if (!mine) fl = null; else if (L.sampled) { fl = S.legsShown * L.total / L.nl; est = "≈ "; } else fl = S.legsShown; }
+  const ap = S.airport ? ` to/from ${M.airports[S.airport - 1][0]}` : "";
+  const c = corrSum(S.sel[0], S.sel[1]), tot = c ? c[0] + c[1] + c[2] : 0;
+  $("frame").innerHTML = `${span(S.sel)}<small>week ${S.fi + 1} of ${S.frames.length}` +
+    (fl === null ? "" : ` · ${est}${Math.round(fl).toLocaleString()} flights${ap}`) + `</small>` +
+    (c ? `<div class="corr">Gulf–Europe: ${CORR.map(([nm, colr], k) => `<span class="cs" style="background:${colr}"></span>${nm.replace("Over ", "")} ${pct(c[k], tot)}`).join(" ")}</div>` : "") +
+    evs.map(e => `<div class="ev"><b>◆</b> ${fmtD(e.date)}: ${esc(e.title)}${e.url ? ` <a href="${esc(e.url)}" target="_blank" rel="noopener">source</a>` : ""}</div>`).join("");
 }
 // weeks are 7-day windows ending on the last day; days before the first full week are left out
 function weekFrames() { const out = []; for (let e = M.days.length - 1; e - 6 >= 0; e -= 7) out.unshift([e - 6, e]); return out; }
@@ -691,6 +731,9 @@ async function refresh() {
 }
 
 // ---------- controls ----------
+$("chartTab").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  S.chart = b.dataset.v; [...$("chartTab").children].forEach(c => c.classList.toggle("on", c === b));
+  $("corrKey").classList.toggle("hide", S.chart !== "corr"); timeline(); });
 $("airport").onchange = e => { S.airport = +e.target.value; buildIndex(); stats(); legend(); draw(); };
 // Playback: one frame per week, drawn from a lighter random sample while preloading the next week. It starts
 // from the week after the one shown (from the first week if the last one is shown). Pausing, or reaching the
@@ -759,11 +802,12 @@ function hover(x, y) {
   M.airports = M.airports || [];
   if (!gl) { $("source").textContent = "This map needs WebGL2, which this browser doesn't support."; return; }
   if (matchMedia("(max-width: 700px)").matches) $("legend").open = false;   // phones: start with the map clear
-  const opts = M.airports.slice(0, 40).map((a, i) => [a[0], i + 1]).sort();
-  for (const [code, i] of opts) { const o = document.createElement("option"); o.value = i; o.textContent = `To/from ${code}`; $("airport").appendChild(o); }
+  for (const [code, name] of HUBS) { const i = M.airports.findIndex(a => a[0] === code); if (i < 0) continue;
+    const o = document.createElement("option"); o.value = i + 1; o.textContent = `${name} (${code})`; $("airport").appendChild(o); }
+  $("corrKey").innerHTML = CORR.map(([nm, colr]) => `<span class="cs" style="background:${colr}"></span>${nm}`).join(" ");
   $("demo").classList.toggle("hide", !M.demo);
   $("kEvt").classList.toggle("hide", !EV.length);
-  $("source").textContent = `${M.demo ? "" : M.source + " · "}${n} days · last day ${fmtD(M.days[n - 1].date)} · updated ${M.generated.slice(0, 10)}`;
+  $("source").textContent = `${span([0, n - 1])}, updated daily · ${M.demo ? "demo data" : "data: " + M.source}`;
   S.frames = weekFrames();
   if (!S.frames.length) S.frames = [[0, n - 1]];   // less than a week of data
   showFrame(S.frames.length - 1); await refresh();

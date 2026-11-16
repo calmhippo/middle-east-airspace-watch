@@ -99,15 +99,24 @@ GitHub Pages source = "GitHub Actions" (already set).
 - Always one week on screen (S.frames = 7-day windows ending on the last day; S.fi = index). The daily-totals chart is
   the player (Nov 16, user agreed): ▶ Play / ❚❚ Pause beside it; tap or drag the chart to pick a week (pauses play,
   map reloads 200 ms after the finger stops); outlined playhead on the chart. #frame on the map always shows the week,
-  "week N of M" and that week's events with source links. Only other control: the airport filter.
+  "week N of M · flights" (all flights: from manifest totals; airport filter: loaded lines, ≈ scaled while playing),
+  the week's Gulf–Europe corridor split, and that week's events with source links. Only other control: the airport
+  filter, cut to 13 hubs (HUBS in the viewer, looked up by code), now in the header.
+- Events (Nov 16, user: make them stand out): red EV_COLOR #c94343 diamonds with a halo and date label on the map,
+  red diamonds above the chart.
+- Chart tabs: "Flights per day" / "Gulf–Europe routes" (100% stacked daily bars from manifest days[].corr = [west, iraq,
+  iran]; colours = dataviz categorical slots 1-3 #2a78d6/#eb6834/#1baf7a, validated). Both share the playhead.
+- Gulf–Europe corridors: pipeline/corridors.py, called by `update.py manifest` (~2 s for 97 days; keeps the old value
+  once line files are pruned). Leg = one end in Gulf box (22–30.5N, 46–57.5E), other in Europe (36–72N, 15W–30E);
+  corridor = where it first crosses 34N: west <40.5E, Iraq 40.5–46E, Iran ≥46E. Joins count (crossings over Iraq/Iran
+  are often estimated). Result Nov 16: Iraq 3–13% Aug–early Oct, jumps to ~35–43% from ~Oct 17-19 (Kuwait reopened
+  to overflights Oct 15); Iran ~0–4%; ~450–500 Gulf–Europe legs/day.
   Removed Nov 16 (user agreed): range presets (1 day / 7 / 30 / All), Line width slider, "Mark unheard stretches"
   (shader u_gaps is now always 0; the code path is still there).
 - Legend + "reading this map" caveats are one collapsible <details id="legend">, closed by default under 700 px wide
   (user, Nov 16: on phones the legend covered the whole map). Touch: one finger pans, two fingers pinch-zoom.
 - Play: from the week after the one shown (from week 1 if on the last), FRAME_MS=1500 per week, PLAY_MAX_LINES=30k
   sample, preloads the next week. Pause/end = that week, reloaded in full.
-- Gulf<->Europe corridor split (crossing 34N, Nov 9 check): via Saudi/Jordan ~90% in Aug -> ~50% by late Oct, Iraq
-  8% -> 50%, Iran ~0.2%. Not yet checked against news or receiver changes. Idea: a "Route corridors" chart.
 - `MAX_LINES = 150000`: above it, fewer shards per day are loaded (random sample, stated in the UI).
 - `manifest.bundle` (optional) lets a host that can't serve .bin (the claude.ai artifact preview) use one base64 JSON.
 - Light theme (user, Nov 8): white sea, beige land #e8e4d8, darker country outlines, page surface #f7f6f2.
@@ -138,8 +147,8 @@ GitHub Pages source = "GitHub Actions" (already set).
 2. Offered, not decided: finer path precision (DP 0.01°, int16 lat/lon*180; ~+70% data, reprocess all days ~3-4 h);
    great-circle joins; tuning WEEK_LO/WEEK_HI, FADE_KM, JOIN_WEIGHT.
 3. Done Nov 16: first 7 events. Keep adding as the period moves (sourced facts only; stay neutral).
-4. Ideas: "Route corridors" chart (Gulf<->Europe share via Saudi/Jordan, Iraq, Iran per week; check receiver
-   changes first), trim the airport filter to ~10 hubs, colour by recent vs earlier days, hover a line → callsign
+4. Done Nov 16: Gulf–Europe routes chart, hub-only airport filter, red events. Not yet checked: whether a receiver
+   change over Kuwait/Iraq contributes to the mid-Oct Iraq jump. Ideas: colour by recent vs earlier days, hover a line → callsign
    (needs callsign in shards), filter by airline, altitude band filter.
 5. Check the daily schedule actually fires (it didn't on Nov 8); otherwise run update.yml by hand.
 

@@ -11,7 +11,8 @@ adsb.lol globe_history (GitHub releases, ~3.6 GB/day, previous day)
    ▼
 pipeline/process_day.py  → data/lines/YYYY-MM-DD.s0-3.bin  (full path of every flight crossing the region)
                          → data/days/YYYY-MM-DD.json      (flights per 0.1° cell, sparse)
-pipeline/update.py       → data/manifest.json          (day list + daily totals)
+pipeline/update.py       → data/manifest.json          (day list + daily totals + Gulf–Europe corridor counts,
+                                                         via pipeline/corridors.py)
    ▼
 site/index.html          (static page: flight lines, week by week, with playback and events)
 ```
@@ -28,6 +29,8 @@ site/index.html          (static page: flight lines, week by week, with playback
   Flights crossing midnight UTC appear as two pieces on consecutive days.
 * **Viewer:** one week at a time. Tap or drag the daily-totals chart to pick a week, or press Play to step
   through every week. Events in the week shown are listed on the map with their sources.
+* **Gulf–Europe routes:** the chart's second tab shows, per day, how flights between Gulf airports and Europe
+  cross latitude 34°N: west of Iraq, over Iraq, or over Iran (`pipeline/corridors.py`).
 
 ## Run it
 
