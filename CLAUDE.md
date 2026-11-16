@@ -112,6 +112,13 @@ GitHub Pages source = "GitHub Actions" (already set).
   Gulf<->Europe mini stacked bar, events with the date linking to the source). Dock: text tabs, round ink play button,
   bars ink for the selected week. No hatching any more (removed for clutter; caveat lives in About). On screens <700 px
   base() fits the box below a 150 px band reserved for the card.
+- Nov 16 restyle (user: "more like sundays-company.com: nice font, clean/bold lines, pops of fun colour, good spacing";
+  the session could not open that site, so this follows the description). Fonts: Bricolage Grotesque (headings, week
+  date) + DM Sans (UI, canvas labels via UIF), from Google Fonts with system fallbacks (the only external request;
+  canvas redraws on document.fonts.ready). Cream paper #fff8ea, 2px ink outlines, hard offset shadows (--pop), the map
+  is a framed rounded panel with 28px margins. Pops are UI-only: sun #ffd23f (Changes toggle, play button, week
+  highlight on the chart, event date pills), lilac #c9b8ff (chart tabs), mint #a3e8c8 (About). Blue/red still only
+  mean more/fewer; corridor colours unchanged. Map: sea #fffdf8, land #f2ead8.
 - Change map (Nov 16, user: effects too hard to see; wanted deltas, baseline traffic still visible, colour for routes
   added/removed). Changes mode (S.deltaOn, default): lines in quiet greys (GREY_LO/HI via u_lo/u_hi); the comp shader
   samples an RG8 texture (S.deltaTex, R = more, G = fewer, 0..1 per 0.1° cell, faded over the outer 1.5° of the box) and
