@@ -94,13 +94,14 @@ GitHub Pages source = "GitHub Actions" (already set).
   Never go back to plain alpha blending at tiny alpha: the 8-bit canvas alpha rounds to 0 and the layer vanishes.
   The old CSS-pixel dilation looked beaded/pixelated (user, Nov 8); don't return to it.
 - Equirectangular projection with cos(28°) x-scaling; zoom 0.2–16 (zoom out to world).
-- Modes: Flight paths (default) / Heatmap / Compare periods (baseline vs recent, red = fewer flights).
-- Controls: range presets, drag-select on daily-totals timeline, airport filter (lines + heatmap), line width, mark unheard stretches, ▶ Play weekly.
-- Heatmap (Nov 9): built in the browser from the loaded lines (heatField, 0.25° cells, each flight once per cell,
-  unheard joins included, light blur, faded box edges, coverage hatching). The days/*.json density grids (observed
-  only, blank where no receivers) are now used only by Compare periods.
+- One view only: flight paths (Nov 16: user removed Heatmap and Compare periods as redundant; focus is ▶ Play weekly
+  showing corridors change over time). days/*.json density grids are still produced by the pipeline but unused by the viewer.
+- Controls: ▶ Play weekly (primary button), range presets, drag-select on daily-totals timeline, airport filter, line width
+  (hidden on phones), mark unheard stretches.
+- Legend + "reading this map" caveats are one collapsible <details id="legend">, closed by default under 700 px wide
+  (user, Nov 16: on phones the legend covered the whole map). Touch: one finger pans, two fingers pinch-zoom.
 - ▶ Play weekly (Nov 9): one frame per calendar week ending on the last day, PLAY_MAX_LINES=30k sample, preloads the
-  next week, big date label (#frame), heatmap colour scale locked to the first frame. Stop/end = that week, reloaded in full.
+  next week, big date label (#frame). Stop/end = that week, reloaded in full.
 - Gulf<->Europe corridor split (crossing 34N, Nov 9 check): via Saudi/Jordan ~90% in Aug -> ~50% by late Oct, Iraq
   8% -> 50%, Iran ~0.2%. Not yet checked against news or receiver changes. Idea: a "Route corridors" chart.
 - `MAX_LINES = 150000`: above it, fewer shards per day are loaded (random sample, stated in the UI).
@@ -108,7 +109,6 @@ GitHub Pages source = "GitHub Actions" (already set).
 - Light theme (user, Nov 8): white sea, beige land #e8e4d8, darker country outlines, page surface #f7f6f2.
   Line colour = the same level (redundant with width): LINE_LO mid blue -> LINE_HI deep navy;
   the legend samples use the same formulas. Unheard joins at 30% opacity (more made a grey fog over Iran/Saudi).
-  Heatmap: SEQ light -> dark blue drawn with "multiply"; Compare: red/blue with light-grey midpoint.
 
 ## Testing
 - Pipeline: build a tiny tar of `traces/xx/trace_full_<hex>.json` (gzip JSON), `split` it, pipe through `process_day.py`.
