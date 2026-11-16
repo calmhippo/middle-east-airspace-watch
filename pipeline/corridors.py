@@ -4,9 +4,11 @@
 A leg counts when one end is in the Gulf (GULF box: Kuwait, Bahrain, Qatar, UAE, eastern Saudi Arabia)
 and the other in Europe (EUROPE box, Turkey west of 30E included). Its corridor is where the path first
 crosses latitude CROSS_LAT (34N, roughly the Syria/Iraq/Iran line north of Jordan and Kuwait):
-  west  lon < 40.5   via Saudi Arabia / Jordan / Syria, or Egypt and the Mediterranean
-  iraq  40.5 - 46    over Iraq
-  iran  lon >= 46    over Iran
+  west  lon < 40.1   via Saudi Arabia / Jordan / Syria, or Egypt and the Mediterranean
+  iraq  40.1 - 45.4  over Iraq
+  iran  lon >= 45.4  over Iran
+(40.1 and 45.4 are the Syria-Iraq and Iraq-Iran borders on 34N in data/basemap.json; the viewer draws this
+line with the same split, CORR_SPLITS in site/index.html, so change both together.)
 Unheard stretches (straight joins between reports) are used too, so where no receiver covers the
 crossing (most of Iraq and Iran) its position is estimated. Legs that never cross 34N are left out.
 
@@ -17,7 +19,7 @@ import struct
 import sys
 
 CROSS_LAT = 34.0
-SPLITS = (40.5, 46.0)            # west | iraq | iran
+SPLITS = (40.1, 45.4)            # west | iraq | iran (borders on 34N; was 40.5 / 46 until Nov 16)
 GULF = (22.0, 30.5, 46.0, 57.5)  # lat_min, lat_max, lon_min, lon_max
 EUROPE = (36.0, 72.0, -15.0, 30.0)
 NAMES = ("west", "iraq", "iran")

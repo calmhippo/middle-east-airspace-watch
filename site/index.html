@@ -166,7 +166,8 @@
     <div class="row"><i style="height:10px;width:10px;transform:rotate(45deg);background:var(--ink);margin:0 9px"></i>An event in the week shown. Details and a source link are in the week card.</div>
     <h3>Gulf–Europe routes</h3>
     <p>Flights between Gulf airports and Europe, by where they cross latitude 34°N: west of Iraq (over Saudi Arabia,
-      Jordan, Syria or Egypt), over Iraq, or over Iran.</p>
+      Jordan, Syria or Egypt), over Iraq, or over Iran. With this tab open, the map marks that line, split at the
+      Syria–Iraq and Iraq–Iran borders (40.1°E and 45.4°E).</p>
     <h3>Gaps in coverage</h3>
     <p>Positions come from volunteer receivers. Few cover Saudi Arabia's interior, Iraq, Iran and the open sea, so there a
       flight is drawn as a straight line between the last and next report. An empty area can mean airlines avoid it or that
@@ -748,6 +749,32 @@ function draw() {
   for (const c of BM.countries) { if (c.rank > maxRank) continue; const [x, y] = proj(c.label[1], c.label[0]);
     if (x > 0 && y > 0 && x < r.width && y < r.height) tctx.fillText(c.name.toUpperCase(), x, y); }
   tctx.letterSpacing = "0px"; tctx.textAlign = "left";
+  // the three Gulf-Europe buckets: the 34N line, split at the borders used in pipeline/corridors.py
+  // (shown only with the routes tab, so the main map stays clean)
+  if (S.chart === "corr") {
+    const LAT = 34, [b1, b2] = CORR_SPLITS, segs = [[31, b1, CORR[0][1], "West of Iraq"], [b1, b2, CORR[1][1], "Iraq"], [b2, 54, CORR[2][1], "Iran"]];
+    tctx.save(); tctx.lineCap = "round";
+    segs.forEach(([a, b, colr, name], k) => {
+      const [xa, ya] = proj(LAT, a), [xb] = proj(LAT, b);
+      if (k !== 1) {   // the outer sections fade out away from Iraq
+        const gr = tctx.createLinearGradient(xa, 0, xb, 0), clear = colr + "00";
+        if (k === 0) { gr.addColorStop(0, clear); gr.addColorStop(0.35, colr); gr.addColorStop(1, colr); }
+        else { gr.addColorStop(0, colr); gr.addColorStop(0.6, colr); gr.addColorStop(1, clear); }
+        tctx.strokeStyle = gr;
+      } else tctx.strokeStyle = colr;
+      tctx.lineWidth = 3; tctx.beginPath(); tctx.moveTo(xa + 2, ya); tctx.lineTo(xb - 2, ya); tctx.stroke();
+      const xm = k === 0 ? xa + (xb - xa) * 0.62 : k === 2 ? xa + (xb - xa) * 0.3 : (xa + xb) / 2;
+      tctx.font = "600 11px system-ui, sans-serif"; tctx.textAlign = "center"; tctx.textBaseline = "bottom";
+      tctx.lineWidth = 3; tctx.strokeStyle = "rgba(251,251,249,.9)"; tctx.strokeText(name, xm, ya - 6);
+      tctx.fillStyle = k === 0 ? "#6f6c65" : colr; tctx.fillText(name, xm, ya - 6);
+    });
+    for (const lon of CORR_SPLITS) { const [x, y] = proj(LAT, lon);   // border ticks
+      tctx.strokeStyle = "#1c1c1a"; tctx.lineWidth = 1.5; tctx.beginPath(); tctx.moveTo(x, y - 5); tctx.lineTo(x, y + 5); tctx.stroke(); }
+    const [xl, yl] = proj(LAT, 54);
+    tctx.font = "500 10px system-ui, sans-serif"; tctx.textAlign = "left"; tctx.textBaseline = "middle"; tctx.fillStyle = "#8e8b83";
+    tctx.fillText("34°N", xl + 6, yl);
+    tctx.restore();
+  }
   // only the hubs are labelled, to keep the map quiet; the airport picked is emphasised
   const sel = M.airports[S.airport - 1];
   for (const [code] of HUBS) { const a = M.airports.find(q => q[0] === code); if (!a) continue;
@@ -775,6 +802,7 @@ const span = ([a, b]) => a === b ? fmtD(M.days[a].date) : `${fmtD(M.days[a].date
 function stats() { frameLabel(); }
 // Gulf<->Europe corridor counts [west, iraq, iran] summed over days i0..i1 (null if none recorded)
 const CORR = [["West of Iraq", "#b3b0a8", "west of Iraq"], ["Over Iraq", "#e07a2c", "Iraq"], ["Over Iran", "#1f9a86", "Iran"]];
+const CORR_SPLITS = [40.1, 45.4];   // longitudes on 34N splitting the buckets: keep equal to SPLITS in pipeline/corridors.py
 function corrSum(i0, i1) { const c = [0, 0, 0]; let any = false;
   for (const d of M.days.slice(i0, i1 + 1)) if (d.corr) { any = true; d.corr.forEach((v, k) => c[k] += v); }
   return any && c[0] + c[1] + c[2] ? c : null; }
@@ -866,7 +894,7 @@ async function refresh() {
 // ---------- controls ----------
 $("chartTab").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
   S.chart = b.dataset.v; [...$("chartTab").children].forEach(c => c.classList.toggle("on", c === b));
-  $("corrKey").classList.toggle("hide", S.chart !== "corr"); timeline(); });
+  $("corrKey").classList.toggle("hide", S.chart !== "corr"); timeline(); draw(); });
 $("airport").onchange = async e => { S.airport = +e.target.value; buildIndex(); await updateDelta(); stats(); legend(); draw(); };
 $("mode").addEventListener("click", async e => { const b = e.target.closest("button"); if (!b) return;
   [...$("mode").children].forEach(c => c.classList.toggle("on", c === b));

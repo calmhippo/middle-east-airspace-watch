@@ -130,7 +130,9 @@ GitHub Pages source = "GitHub Actions" (already set).
   iran]). Both share the playhead.
 - Gulf–Europe corridors: pipeline/corridors.py, called by `update.py manifest` (~2 s for 97 days; keeps the old value
   once line files are pruned). Leg = one end in Gulf box (22–30.5N, 46–57.5E), other in Europe (36–72N, 15W–30E);
-  corridor = where it first crosses 34N: west <40.5E, Iraq 40.5–46E, Iran ≥46E. Joins count (crossings over Iraq/Iran
+  corridor = where it first crosses 34N: west <40.1E, Iraq 40.1–45.4E, Iran ≥45.4E (the real borders on 34N per
+  basemap.json; were 40.5/46 until Nov 16). With the routes tab open the map draws that 34N line split at the same
+  longitudes (CORR_SPLITS in the viewer = SPLITS in corridors.py; change both together). Joins count (crossings over Iraq/Iran
   are often estimated). Result Nov 16: Iraq 3–13% Aug–early Oct, jumps to ~35–43% from ~Oct 17-19 (Kuwait reopened
   to overflights Oct 15); Iran ~0–4%; ~450–500 Gulf–Europe legs/day.
   Removed Nov 16 (user agreed): range presets (1 day / 7 / 30 / All), Line width slider, "Mark unheard stretches"
