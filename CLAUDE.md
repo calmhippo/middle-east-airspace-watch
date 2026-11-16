@@ -112,13 +112,17 @@ GitHub Pages source = "GitHub Actions" (already set).
   Gulf<->Europe mini stacked bar, events with the date linking to the source). Dock: text tabs, round ink play button,
   bars ink for the selected week. No hatching any more (removed for clutter; caveat lives in About). On screens <700 px
   base() fits the box below a 150 px band reserved for the card.
-- Nov 16 restyle (user: "more like sundays-company.com: nice font, clean/bold lines, pops of fun colour, good spacing";
-  the session could not open that site, so this follows the description). Fonts: Bricolage Grotesque (headings, week
-  date) + DM Sans (UI, canvas labels via UIF), from Google Fonts with system fallbacks (the only external request;
-  canvas redraws on document.fonts.ready). Cream paper #fff8ea, 2px ink outlines, hard offset shadows (--pop), the map
-  is a framed rounded panel with 28px margins. Pops are UI-only: sun #ffd23f (Changes toggle, play button, week
-  highlight on the chart, event date pills), lilac #c9b8ff (chart tabs), mint #a3e8c8 (About). Blue/red still only
-  mean more/fewer; corridor colours unchanged. Map: sea #fffdf8, land #f2ead8.
+- Nov 16 restyle, v2 (user: match sundays-company.com except its lime accent; first try with rounded corners, hard
+  shadows and pastel pops was before the session could open that site). Now: white page, square corners, 1px black
+  rules, 24px gutters, no shadows, panels #f7f7f5. Fonts (Google Fonts, the only external request; canvas redraws on
+  document.fonts.ready): Hanken Grotesk (stand-in for Sundays' Calibre; big lowercase name and chart tabs) and Antonio
+  (tall condensed, uppercase week date). Selected states = black fill, white text. The page is black and white; colour
+  only means change. Map: land #ffffff, sea #e7e6e1, borders rgba(17,17,17,.55) 0.8px.
+  Change colours (user: red/blue/grey was messy): one diverging ramp, vermilion LESS <- grey -> cobalt MORE, with
+  MORE_LO/HI and LESS_LO/HI shaded by traffic like the grey. The shader takes the signed delta (r - g) through
+  smoothstep(0.08, 0.5) so paths are clearly coloured or plain grey (few muddy half-tints); gone-route ghost alpha 45.
+  Traffic view lines are ink (LINE_LO grey -> LINE_HI black). Corridor colours are now greys: west #d6d4ce, Iraq
+  #111111, Iran #8a8882 (orange/teal would clash with the vermilion "fewer"). Week card key = the gradient bar.
 - Change map (Nov 16, user: effects too hard to see; wanted deltas, baseline traffic still visible, colour for routes
   added/removed). Changes mode (S.deltaOn, default): lines in quiet greys (GREY_LO/HI via u_lo/u_hi); the comp shader
   samples an RG8 texture (S.deltaTex, R = more, G = fewer, 0..1 per 0.1° cell, faded over the outer 1.5° of the box) and
@@ -131,8 +135,7 @@ GitHub Pages source = "GitHub Actions" (already set).
   ~270 ms per field. Hover shows this week vs baseline flights/day. Diverging pair = dataviz blue<->red.
 - Events: ink diamonds with a white ring and an ink date pill, because red means "fewer" (they were red for a few hours
   on Nov 16 at the user's request; the switch was explained to the user).
-- Corridor colours (chart + card): west of Iraq grey #b3b0a8, Iraq orange #e07a2c, Iran teal #1f9a86, so blue/red keep
-  one meaning site-wide.
+- Corridor colours (chart + card): see the Nov 16 restyle v2 note (greys/black).
 - Chart tabs: "Flights per day" / "Gulf–Europe routes" (100% stacked daily bars from manifest days[].corr = [west, iraq,
   iran]). Both share the playhead.
 - Gulf–Europe corridors: pipeline/corridors.py, called by `update.py manifest` (~2 s for 97 days; keeps the old value

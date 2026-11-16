@@ -6,17 +6,17 @@
 <title>Middle East Airspace Watch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  /* Bold atlas: warm cream paper, ink outlines, hard offset shadows and a few sunny pops of colour.
-     Pops (sun, lilac, mint) are for the interface only; on the map blue still means more flights, red fewer. */
+  /* Showroom style: white page, square corners, thin black rules, generous gutters, big lowercase type and a tall
+     condensed face for the week. The page itself is black and white; colour is kept for the data (change on the map). */
   :root {
-    --paper: #fff8ea; --card: #ffffff; --ink: #161512; --ink-2: #48453d; --ink-3: #807b6e;
-    --hair: #e8dfcb; --hover: #fff1c7; --more: #2a6fd6; --less: #d6453b; --focus: #7c5cff;
-    --sun: #ffd23f; --lilac: #c9b8ff; --mint: #a3e8c8;
-    --line: 2px solid var(--ink); --pop: 4px 4px 0 var(--ink); --pop-sm: 2px 2px 0 var(--ink);
-    --display: "Bricolage Grotesque", "DM Sans", system-ui, sans-serif;
-    --ui: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --paper: #ffffff; --panel: #f7f7f5; --ink: #111111; --ink-2: #4b4b48; --ink-3: #85847f;
+    --rule: #111111; --hair: #e3e2de; --hover: #f1f0ec; --focus: #2554e8;
+    --more: #2554e8; --less: #f05a1e;
+    --gut: 24px;
+    --display: "Antonio", "Arial Narrow", sans-serif;
+    --ui: "Hanken Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
     color-scheme: light;
   }
   * { box-sizing: border-box; }
@@ -24,113 +24,106 @@
   body { display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0, 1fr); height: 100vh; height: 100dvh;
     -webkit-font-smoothing: antialiased; }
   button, select { font: inherit; color: inherit; }
-  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .hide { display: none !important; }
 
-  /* shared "sticker" look for buttons: ink outline, lifts on hover, presses down on click */
-  .pill { border: var(--line); background: var(--card); border-radius: 999px; cursor: pointer; font-weight: 700;
-    box-shadow: var(--pop-sm); transition: transform .12s ease, box-shadow .12s ease, background .12s ease; }
-  .pill:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--ink); }
-  .pill:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
-
-  /* header: name and period on the left, the three controls on the right */
-  header { display: flex; align-items: center; gap: 12px 24px; flex-wrap: wrap; padding: 20px 28px 16px; }
-  .brand { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-width: 0; }
-  h1 { font: 800 26px/1.05 var(--display); letter-spacing: -.03em; margin: 0; }
-  h1 .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--sun); border: var(--line);
-    margin-right: 10px; vertical-align: 2px; }
-  .meta { color: var(--ink-2); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; background: var(--card);
-    border: 1.5px solid var(--ink); border-radius: 999px; padding: 2px 10px; }
-  .demo { background: var(--lilac); color: var(--ink); padding: 2px 10px; border-radius: 999px; font-weight: 700; font-size: 11px; border: 1.5px solid var(--ink); }
-  .controls { display: flex; align-items: center; gap: 12px; margin-left: auto; flex-wrap: wrap; }
-  select.pill { appearance: none; background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23161512' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 12px center;
-    padding: 6px 32px 6px 14px; font-size: 13px; }
-  .seg { display: inline-flex; background: var(--card); border: var(--line); border-radius: 999px; padding: 3px; gap: 2px; box-shadow: var(--pop-sm); }
-  .seg button { border: 0; background: none; padding: 4px 14px; border-radius: 999px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+  /* header: big lowercase name over a full-width rule, like a shop's top nav */
+  header { display: flex; align-items: center; gap: 12px 28px; flex-wrap: wrap; padding: 18px var(--gut) 16px; margin: 0 var(--gut);
+    padding-left: 0; padding-right: 0; border-bottom: 1px solid var(--rule); }
+  .brand { display: flex; align-items: baseline; gap: 6px 20px; flex-wrap: wrap; min-width: 0; }
+  h1 { font: 500 32px/1 var(--ui); letter-spacing: -.035em; margin: 0; text-transform: lowercase; }
+  .meta { color: var(--ink-3); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .demo { background: var(--ink); color: #fff; padding: 2px 8px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+  .controls { display: flex; align-items: stretch; gap: 10px; margin-left: auto; flex-wrap: wrap; }
+  select { appearance: none; border: 1px solid var(--rule); border-radius: 0; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23111' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 12px center;
+    padding: 7px 34px 7px 12px; cursor: pointer; font-size: 13px; font-weight: 500; }
+  select:hover { background-color: var(--hover); }
+  .seg { display: inline-flex; border: 1px solid var(--rule); }
+  .seg button { border: 0; background: #fff; padding: 7px 16px; cursor: pointer; font-size: 13px; font-weight: 500; }
+  .seg button + button { border-left: 1px solid var(--rule); }
   .seg button:hover { background: var(--hover); }
-  .seg button.on { background: var(--sun); color: var(--ink); font-weight: 700; box-shadow: inset 0 0 0 1.5px var(--ink); }
-  #aboutBtn { background: var(--mint); padding: 6px 16px; font-size: 13px; }
-  .icon-btn { border: 0; background: none; color: var(--ink-2); padding: 6px 8px; border-radius: 999px; cursor: pointer; font-size: 13px; }
-  .icon-btn:hover { background: var(--hover); color: var(--ink); }
+  .seg button.on { background: var(--ink); color: #fff; }
+  #aboutBtn { border: 0; background: none; padding: 7px 2px; cursor: pointer; font-size: 13px; font-weight: 600;
+    text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+  #aboutBtn:hover { text-decoration-thickness: 2px; }
+  .icon-btn { border: 0; background: none; color: var(--ink); padding: 6px 8px; cursor: pointer; font-size: 13px; }
 
-  /* map: a framed panel with breathing room around it */
-  #mapwrap { position: relative; overflow: hidden; min-height: 300px; margin: 0 28px; border: var(--line); border-radius: 24px;
-    background: #fffdf8; box-shadow: var(--pop); isolation: isolate; }
+  /* map: a square-cornered frame inside the page gutters */
+  #mapwrap { position: relative; overflow: hidden; min-height: 300px; margin: var(--gut) var(--gut) 0; border: 1px solid var(--rule); background: #fff; }
   #mapwrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
   #gl, #top { pointer-events: none; }
   #base { cursor: grab; touch-action: none; }
   #base.drag { cursor: grabbing; }
-  .float { position: absolute; z-index: 2; background: var(--card); border: var(--line); border-radius: 16px; box-shadow: var(--pop); }
-  #frame { left: 20px; top: 20px; width: 310px; max-width: calc(100% - 84px); padding: 16px 18px; font-variant-numeric: tabular-nums; }
-  .wk { font: 800 26px/1.1 var(--display); letter-spacing: -.03em; }
-  .sub { color: var(--ink-2); font-size: 12px; margin-top: 4px; font-weight: 500; }
-  .key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 12px; font-size: 12px; color: var(--ink-2); font-weight: 500; }
-  .key i { display: inline-block; width: 18px; height: 5px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
-  .key .vs { color: var(--ink-3); }
-  .corr { margin-top: 14px; }
-  .corr .lbl { font-size: 11px; color: var(--ink-2); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; display: flex; justify-content: space-between; }
-  .bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; margin: 6px 0 6px; border: 1.5px solid var(--ink); background: var(--card); }
+  .float { position: absolute; z-index: 2; background: #fff; border: 1px solid var(--rule); }
+  #frame { left: 20px; top: 20px; width: 320px; max-width: calc(100% - 80px); padding: 18px 20px 18px; font-variant-numeric: tabular-nums; }
+  .wk { font: 700 40px/1 var(--display); text-transform: uppercase; letter-spacing: -.005em; }
+  .sub { color: var(--ink-2); font-size: 13px; margin-top: 8px; }
+  .sect { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--rule); }
+  .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
+  .ramp { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--ink-2); }
+  .ramp i { display: block; height: 8px; }
+  .key .vs { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+  .bar { display: flex; height: 10px; margin: 8px 0 8px; border: 1px solid var(--rule); background: #fff; }
   .bar span { display: block; height: 100%; }
-  .bar span + span { border-left: 1.5px solid var(--ink); }
-  .corr .nums { font-size: 12px; color: var(--ink-2); display: flex; gap: 12px; flex-wrap: wrap; }
+  .bar span + span { border-left: 1px solid var(--rule); }
+  .corr .nums { font-size: 12px; color: var(--ink-2); display: flex; gap: 14px; flex-wrap: wrap; }
   .corr .nums b { font-weight: 700; color: var(--ink); }
-  .evs { margin-top: 14px; padding-top: 12px; border-top: var(--line); display: grid; gap: 10px; }
-  .ev { font-size: 12px; line-height: 1.45; color: var(--ink-2); display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
-  .ev .d { font-weight: 700; color: var(--ink); white-space: nowrap; background: var(--sun); border: 1.5px solid var(--ink); border-radius: 999px; padding: 0 8px; font-size: 11px; }
-  .ev a.d { text-decoration: none; }
-  .ev a.d:hover { background: var(--lilac); }
-  #zoom { right: 20px; top: 20px; display: flex; flex-direction: column; padding: 0; overflow: hidden; border-radius: 14px; }
-  #zoom button { width: 38px; height: 38px; border: 0; background: none; cursor: pointer; font-size: 18px; font-weight: 700; color: var(--ink); }
-  #zoom button + button { border-top: var(--line); }
-  #zoom button:hover { background: var(--sun); }
-  #loading { left: 50%; bottom: 20px; transform: translateX(-50%); padding: 6px 14px; font-size: 13px; font-weight: 700; background: var(--sun);
-    border-radius: 999px; box-shadow: var(--pop-sm); display: none; }
-  #tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; border-radius: 10px; padding: 7px 10px;
-    font-size: 12px; display: none; white-space: nowrap; z-index: 3; font-variant-numeric: tabular-nums; box-shadow: 3px 3px 0 var(--sun); }
-  #tip .s { color: rgba(255,255,255,.7); }
+  .evs { display: grid; gap: 10px; }
+  .ev { font-size: 13px; line-height: 1.45; color: var(--ink-2); display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; }
+  .ev .d { font-weight: 700; color: var(--ink); white-space: nowrap; }
+  .ev a.d { text-decoration: underline; text-underline-offset: 3px; }
+  #zoom { right: 20px; top: 20px; display: flex; flex-direction: column; padding: 0; }
+  #zoom button { width: 36px; height: 36px; border: 0; background: #fff; cursor: pointer; font-size: 17px; color: var(--ink); }
+  #zoom button + button { border-top: 1px solid var(--rule); }
+  #zoom button:hover { background: var(--ink); color: #fff; }
+  #loading { left: 50%; bottom: 20px; transform: translateX(-50%); padding: 7px 14px; font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .08em; background: var(--ink); color: #fff; display: none; }
+  #tip { position: absolute; pointer-events: none; background: var(--ink); color: #fff; padding: 7px 10px;
+    font-size: 12px; display: none; white-space: nowrap; z-index: 3; font-variant-numeric: tabular-nums; }
+  #tip .s { color: rgba(255,255,255,.65); }
 
-  /* dock: chart tabs, then the play button beside the daily chart (the chart is the scrubber) */
-  footer { padding: 22px 28px 22px; }
-  .dockhead { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
-  .tabs { display: flex; gap: 8px; }
-  .tabs button { border: 1.5px solid var(--ink); background: var(--card); padding: 3px 12px; border-radius: 999px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--ink-2); }
-  .tabs button:hover { background: var(--hover); }
-  .tabs button.on { background: var(--lilac); color: var(--ink); font-weight: 700; box-shadow: var(--pop-sm); }
-  #corrKey { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); margin-left: auto; font-weight: 500; }
-  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; border: 1.5px solid var(--ink); vertical-align: -1px; }
-  .player { display: flex; align-items: center; gap: 18px; }
-  #play { flex: none; width: 52px; height: 52px; border-radius: 50%; background: var(--sun); color: var(--ink); display: grid; place-items: center; box-shadow: var(--pop); }
-  #play:hover { box-shadow: 5px 5px 0 var(--ink); }
-  #play svg { width: 16px; height: 16px; fill: currentColor; }
+  /* dock: chart tabs as large lowercase links, then the play button beside the daily chart (the chart is the scrubber) */
+  footer { padding: 20px var(--gut) 22px; }
+  .dockhead { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tabs { display: flex; gap: 24px; }
+  .tabs button { border: 0; background: none; padding: 0 2px; cursor: pointer; font-size: 20px; font-weight: 500; letter-spacing: -.02em;
+    text-transform: lowercase; color: var(--ink-3); }
+  .tabs button:hover { color: var(--ink); }
+  .tabs button.on { color: #fff; background: var(--ink); padding: 0 6px; }
+  #corrKey { display: flex; gap: 16px; font-size: 12px; color: var(--ink-2); margin-left: auto; }
+  .sw { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border: 1px solid var(--rule); vertical-align: -1px; }
+  .player { display: flex; align-items: center; gap: 20px; }
+  #play { flex: none; width: 52px; height: 52px; border: 0; background: var(--ink); color: #fff; cursor: pointer; display: grid; place-items: center; }
+  #play:hover { background: #333; }
+  #play svg { width: 15px; height: 15px; fill: currentColor; }
   #timeline { flex: 1; min-width: 0; width: 100%; height: 76px; display: block; user-select: none; cursor: pointer; touch-action: none; font-family: var(--ui); }
 
   /* about */
-  dialog { border: var(--line); border-radius: 22px; padding: 0; max-width: min(540px, calc(100% - 32px)); box-shadow: 8px 8px 0 var(--ink); color: var(--ink); background: var(--card); }
-  dialog::backdrop { background: rgba(22,21,18,.35); }
-  .about { padding: 28px 30px 24px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-height: 80vh; overflow: auto; }
-  .about h2 { font: 800 26px/1.1 var(--display); color: var(--ink); margin: 0 0 14px; letter-spacing: -.03em; }
-  .about h3 { font: 700 15px/1.3 var(--display); color: var(--ink); margin: 22px 0 6px; display: inline-block; background: var(--sun); padding: 1px 10px; border-radius: 999px; border: 1.5px solid var(--ink); }
-  .about h3:nth-of-type(2n) { background: var(--lilac); } .about h3:nth-of-type(3n) { background: var(--mint); }
+  dialog { border: 1px solid var(--rule); border-radius: 0; padding: 0; max-width: min(560px, calc(100% - 32px)); color: var(--ink); background: #fff; }
+  dialog::backdrop { background: rgba(17,17,17,.35); }
+  .about { padding: 30px 32px 26px; font-size: 14px; line-height: 1.6; color: var(--ink-2); max-height: 80vh; overflow: auto; }
+  .about h2 { font: 500 30px/1.05 var(--ui); letter-spacing: -.035em; text-transform: lowercase; color: var(--ink); margin: 0 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+  .about h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink); margin: 22px 0 6px; }
   .about p { margin: 0 0 8px; }
   .about .row { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
-  .about .row i { flex: none; display: inline-block; width: 28px; border-radius: 3px; }
-  .about .close { position: absolute; right: 14px; top: 14px; width: 34px; height: 34px; padding: 0; border: var(--line); background: var(--card); font-weight: 700; color: var(--ink); }
-  .about .close:hover { background: var(--sun); }
-  .about a { color: var(--ink); font-weight: 700; text-decoration-color: var(--sun); text-decoration-thickness: 3px; }
+  .about .row i { flex: none; display: inline-block; width: 28px; }
+  .about .close { position: absolute; right: 18px; top: 18px; width: 34px; height: 34px; padding: 0; border: 1px solid var(--rule); background: #fff; }
+  .about .close:hover { background: var(--ink); color: #fff; }
+  .about a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
 
   @media (max-width: 700px) {
-    header { padding: 14px 14px 12px; gap: 10px; } .controls { margin-left: 0; width: 100%; gap: 8px; flex-wrap: nowrap; }
-    select.pill { flex: 1 1 0; min-width: 0; padding-left: 12px; } #aboutBtn { padding: 6px 12px; }
-    .brand { gap: 6px 10px; } h1 { font-size: 20px; } h1 .dot { width: 10px; height: 10px; margin-right: 8px; }
-    .seg button { padding: 3px 9px; font-size: 12px; } select.pill, #aboutBtn { font-size: 12px; }
-    #mapwrap { margin: 0 12px; border-radius: 18px; box-shadow: 3px 3px 0 var(--ink); }
-    .float { box-shadow: 3px 3px 0 var(--ink); border-radius: 14px; }
-    #frame { left: 10px; top: 10px; padding: 10px 12px; max-width: calc(100% - 66px); } .wk { font-size: 19px; }
-    .key, .ev { font-size: 11px; } .corr { margin-top: 8px; } .evs { margin-top: 8px; padding-top: 8px; gap: 6px; }
-    .key { margin-top: 6px; } .corr .nums { font-size: 11px; gap: 8px; } .bar { height: 9px; }
+    :root { --gut: 12px; }
+    header { padding-top: 12px; padding-bottom: 12px; gap: 10px; } h1 { font-size: 24px; }
+    .controls { margin-left: 0; width: 100%; gap: 8px; flex-wrap: nowrap; }
+    select { flex: 1 1 0; min-width: 0; font-size: 12px; } .seg button { padding: 6px 10px; font-size: 12px; } #aboutBtn { font-size: 12px; }
+    #mapwrap { margin-top: 12px; }
+    #frame { left: 8px; top: 8px; padding: 10px 12px; max-width: calc(100% - 60px); } .wk { font-size: 26px; }
+    .sub { margin-top: 4px; font-size: 12px; } .sect { margin-top: 8px; padding-top: 8px; }
+    .ramp, .ev, .corr .nums { font-size: 11px; } .key .vs { font-size: 11px; } .bar { height: 8px; margin: 6px 0; } .evs { gap: 6px; }
     .ev .t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    #zoom { right: 10px; top: 10px; } #zoom button { width: 34px; height: 34px; }
-    footer { padding: 14px 12px 14px; } #timeline { height: 58px; } #play { width: 42px; height: 42px; box-shadow: 3px 3px 0 var(--ink); } .player { gap: 12px; }
+    #zoom { right: 8px; top: 8px; } #zoom button { width: 32px; height: 32px; }
+    footer { padding: 12px var(--gut) 14px; } .tabs { gap: 14px; } .tabs button { font-size: 16px; }
+    #timeline { height: 58px; } #play { width: 42px; height: 42px; } .player { gap: 12px; }
     #corrKey { margin-left: 0; width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -139,16 +132,16 @@
 <body>
 <header>
   <div class="brand">
-    <h1><span class="dot" aria-hidden="true"></span>Middle East Airspace Watch</h1>
+    <h1>Middle East Airspace Watch</h1>
     <span class="meta" id="source">Loading…</span>
     <span class="demo hide" id="demo">Sample data, not real flights</span>
   </div>
   <div class="controls">
-    <select class="pill" id="airport" aria-label="Show flights to or from an airport"><option value="0">All flights</option></select>
+    <select id="airport" aria-label="Show flights to or from an airport"><option value="0">All flights</option></select>
     <div class="seg" id="mode" role="tablist" aria-label="Map colours">
       <button data-v="delta" class="on" role="tab" title="Colour routes by how traffic compares with the first four weeks">Changes</button><button data-v="plain" role="tab" title="All routes in one colour">Traffic</button>
     </div>
-    <button class="pill" id="aboutBtn" aria-haspopup="dialog">About</button>
+    <button id="aboutBtn" aria-haspopup="dialog">About</button>
   </div>
 </header>
 
@@ -170,7 +163,7 @@
     <span id="corrKey" class="hide"></span>
   </div>
   <div class="player">
-    <button class="pill" id="play" aria-label="Play week by week"></button>
+    <button id="play" aria-label="Play week by week"></button>
     <svg id="timeline" role="slider" aria-label="Week shown; tap or drag to choose"></svg>
   </div>
 </footer>
@@ -182,9 +175,9 @@
     <p>Each line is one civil flight that crossed the region (Egypt to Pakistan, Yemen to the Caucasus) in the week shown,
       from takeoff to landing. Thicker, darker lines carry more flights.</p>
     <h3>Changes</h3>
-    <div class="row"><i style="height:3px;background:var(--more)"></i><span>More flights per day than in <span class="baseTxt"></span></span></div>
-    <div class="row"><i style="height:3px;background:var(--less)"></i>Fewer flights. A faint red trace with no line is a route no longer flown.</div>
-    <div class="row"><i style="height:3px;background:#a9a69e"></i>About the same</div>
+    <div class="row"><i style="height:4px;background:var(--more)"></i><span>More flights per day than in <span class="baseTxt"></span></span></div>
+    <div class="row"><i style="height:4px;background:var(--less)"></i>Fewer flights. A faint red trace with no line is a route no longer flown.</div>
+    <div class="row"><i style="height:4px;background:#c4c2bc"></i>About the same</div>
     <p>The first four weeks are the reference period, so they show little change themselves.</p>
     <h3>Events</h3>
     <div class="row"><i style="height:10px;width:10px;transform:rotate(45deg);background:var(--ink);margin:0 9px"></i>An event in the week shown. Details and a source link are in the week card.</div>
@@ -210,10 +203,14 @@ const PLAY_MAX_LINES = 30000;        // ...and this while the animation plays (a
 const FRAME_MS = 1500;               // time per week in the animation
 const S = { deltaOn: true, base: null, delta: null, chart: "flights", sel: [0, 0], fi: 0, frames: [], lineCache: new Map(), zoom: 1, panX: 0, panY: 0, playing: null, airport: 0, lines: null };
 let G, M, BM, EV = [];
-const UIF = '"DM Sans", system-ui, sans-serif';   // canvas label font (loaded in <head>)
-const EV_COLOR = "#161512";   // events: ink (red means "fewer flights")
+const UIF = '"Hanken Grotesk", Helvetica, Arial, sans-serif';   // canvas label font (loaded in <head>)
+const EV_COLOR = "#111111";   // events: ink (red means "fewer flights")
 // Change colours (dataviz diverging pair): blue = more flights than the baseline, red = fewer; unchanged routes stay grey
-const MORE = [42, 111, 214], LESS = [214, 69, 59];
+const MORE = [37, 84, 232], LESS = [240, 90, 30];   // cobalt / vermilion: the key colours (dark ends below)
+// line colours by traffic (lo = quiet path, hi = busy): unchanged paths stay a light neutral grey so the change reads
+// first; changed ones take one continuous diverging ramp, vermilion <- grey -> cobalt, darker where traffic is heavier
+const MORE_LO = [96, 132, 250], MORE_HI = [18, 50, 196], LESS_LO = [250, 140, 90], LESS_HI = [206, 64, 8];
+const RAMP_CSS = `linear-gradient(90deg, rgb(${LESS}), rgb(250,170,130) 30%, #d6d4ce 50%, rgb(140,165,250) 70%, rgb(${MORE}))`;
 const PLAY_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9.5-5.5z"/></svg>';
 const PAUSE_ICON = '<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 1.5h3.2v11H2.5zM8.3 1.5h3.2v11H8.3z"/></svg>';
 const BASE_WEEKS = 4;           // baseline = the first BASE_WEEKS weeks of the period
@@ -343,8 +340,8 @@ const glc = $("gl"), gl = glc.getContext("webgl2", { premultipliedAlpha: true, a
 const R_MAX = 4;              // widest half-width in CSS pixels
 const FADE_KM = [1800, 3200]; // 1800 km from Doha covers all of Saudi Arabia; Istanbul/Delhi are ~2,600-2,700 km
 // line colour by flights/day (t = log2(1 + f) / log2(101)): mid blue for rare paths -> deep navy for 100+/day
-const LINE_LO = [52, 112, 192], LINE_HI = [10, 42, 98];
-const GREY_LO = [196, 193, 186], GREY_HI = [120, 117, 110];  // line colours when changes are shown: quiet, so colour leads
+const LINE_LO = [150, 148, 142], LINE_HI = [17, 17, 17];   // Traffic view: ink, light for rare paths -> black for busy ones
+const GREY_LO = [206, 204, 198], GREY_HI = [146, 144, 138];  // line colours when changes are shown: quiet, so colour leads
 const lineRamp = () => S.deltaOn ? [GREY_LO, GREY_HI] : [LINE_LO, LINE_HI];
 // An unheard join counts this much of a flight towards line width, so observed corridors dominate.
 // JOIN_WEIGHT_LOWCOV applies where receiver coverage is low (the hatched areas). Tried Nov 9 at 1.0
@@ -494,7 +491,8 @@ if (gl) {
   comp = link(FS, `#version 300 es
     precision highp float; uniform sampler2D u_tex; uniform bool u_gaps; ${VIEW} ${HW} out vec4 o;
     uniform vec3 u_lo, u_hi; uniform sampler2D u_delta; uniform bool u_dOn; uniform vec4 u_box;
-    const vec3 MORE = vec3(${MORE.join(",")}) / 255.0, LESS = vec3(${LESS.join(",")}) / 255.0;
+    const vec3 MORE_LO = vec3(${MORE_LO.join(",")}) / 255.0, MORE_HI = vec3(${MORE_HI.join(",")}) / 255.0;
+    const vec3 LESS_LO = vec3(${LESS_LO.join(",")}) / 255.0, LESS_HI = vec3(${LESS_HI.join(",")}) / 255.0;
     void main() {
       float fade = fadeAt(unproject(gl_FragCoord.xy));
       vec4 s = texelFetch(u_tex, ivec2(gl_FragCoord.xy), 0);
@@ -508,9 +506,12 @@ if (gl) {
         vec2 ll = unproject(gl_FragCoord.xy);
         vec2 uv = vec2((ll.y - u_box.z) / (u_box.w - u_box.z), (u_box.y - ll.x) / (u_box.y - u_box.x));
         vec2 d = any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0))) ? vec2(0.0) : texture(u_delta, uv).rg;
-        float k = max(d.r, d.g);
-        col = mix(col, d.r >= d.g ? MORE : LESS, k);
-        a *= mix(0.7, 1.0, k);
+        // one signed value per spot, pushed through a steep curve: a path is either clearly coloured or plain grey,
+        // so there are few muddy half-tints; the hue keeps the traffic shading of the grey it replaces
+        float sg = d.r - d.g, k = smoothstep(0.08, 0.5, abs(sg));
+        vec3 hue = sg > 0.0 ? mix(MORE_LO, MORE_HI, t) : mix(LESS_LO, LESS_HI, t);
+        col = mix(col, hue, k);
+        a *= mix(0.55, 1.0, k);
       }
       // unheard stretches (s.w = their share here): paler; grey when "Mark unheard stretches" is on
       if (u_gaps) { col = mix(col, vec3(0.5, 0.49, 0.46), s.w); a *= 1.0 - 0.6 * s.w; }
@@ -722,7 +723,7 @@ function buildDelta(cur, base) {
     rg[2 * i + (d > 0 ? 0 : 1)] = Math.round(255 * k * edge);
     // where traffic has largely gone, a faint red trace keeps the old route visible
     if (d < 0) { const gone = 1 - a[i] / b[i];
-      px.set([LESS[0], LESS[1], LESS[2], Math.round(110 * k * sm(0.5, 0.9, gone) * edge)], i * 4); }
+      px.set([LESS[0], LESS[1], LESS[2], Math.round(45 * k * sm(0.5, 0.9, gone) * edge)], i * 4); }
   }
   g.putImageData(img, 0, 0);
   if (!gl) return;
@@ -758,17 +759,17 @@ function visible(ring, r) { // cheap bbox cull
 function draw() {
   const { dpr, r } = fit(cv);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = "#fffdf8"; ctx.fillRect(0, 0, r.width, r.height);           // sea
-  ctx.fillStyle = "#f2ead8";                                                    // land
+  ctx.fillStyle = "#e7e6e1"; ctx.fillRect(0, 0, r.width, r.height);           // sea
+  ctx.fillStyle = "#ffffff";                                                    // land
   for (const c of BM.countries) for (const ring of c.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.fill(); }
-  ctx.fillStyle = "#fffdf8"; for (const l of BM.lakes) for (const ring of l.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.fill(); }
+  ctx.fillStyle = "#e7e6e1"; for (const l of BM.lakes) for (const ring of l.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.fill(); }
   drawGhost();
-  ctx.strokeStyle = "rgba(22,21,18,.28)"; ctx.lineWidth = 0.7;          // country outlines
+  ctx.strokeStyle = "rgba(17,17,17,.55)"; ctx.lineWidth = 0.8;          // country outlines
   for (const c of BM.countries) for (const ring of c.rings) if (visible(ring, r)) { ringPath(ctx, ring); ctx.stroke(); }
   drawGL();
   // top layer: labels, airports, events
   fit(topc); tctx.setTransform(dpr, 0, 0, dpr, 0, 0); tctx.clearRect(0, 0, r.width, r.height);
-  tctx.textAlign = "center"; tctx.textBaseline = "middle"; tctx.font = `500 10px ${UIF}`; tctx.fillStyle = "rgba(22,21,18,.42)";
+  tctx.textAlign = "center"; tctx.textBaseline = "middle"; tctx.font = `500 10px ${UIF}`; tctx.fillStyle = "rgba(17,17,17,.5)";
   tctx.letterSpacing = "1.2px";
   const maxRank = 2 + Math.log2(Math.max(0.25, S.zoom)) * 2 + 2;
   for (const c of BM.countries) { if (c.rank > maxRank) continue; const [x, y] = proj(c.label[1], c.label[0]);
@@ -790,11 +791,11 @@ function draw() {
       tctx.lineWidth = 3; tctx.beginPath(); tctx.moveTo(xa + 2, ya); tctx.lineTo(xb - 2, ya); tctx.stroke();
       const xm = k === 0 ? xa + (xb - xa) * 0.62 : k === 2 ? xa + (xb - xa) * 0.3 : (xa + xb) / 2;
       tctx.font = `600 11px ${UIF}`; tctx.textAlign = "center"; tctx.textBaseline = "bottom";
-      tctx.lineWidth = 3; tctx.strokeStyle = "rgba(255,253,248,.9)"; tctx.strokeText(name, xm, ya - 6);
-      tctx.fillStyle = k === 0 ? "#6f6c65" : colr; tctx.fillText(name, xm, ya - 6);
+      tctx.lineWidth = 3; tctx.strokeStyle = "rgba(255,255,255,.9)"; tctx.strokeText(name, xm, ya - 6);
+      tctx.fillStyle = k === 0 ? "#6f6e69" : colr; tctx.fillText(name, xm, ya - 6);
     });
     for (const lon of CORR_SPLITS) { const [x, y] = proj(LAT, lon);   // border ticks
-      tctx.strokeStyle = "#161512"; tctx.lineWidth = 1.5; tctx.beginPath(); tctx.moveTo(x, y - 5); tctx.lineTo(x, y + 5); tctx.stroke(); }
+      tctx.strokeStyle = "#111111"; tctx.lineWidth = 1.5; tctx.beginPath(); tctx.moveTo(x, y - 5); tctx.lineTo(x, y + 5); tctx.stroke(); }
     const [xl, yl] = proj(LAT, 54);
     tctx.font = `500 10px ${UIF}`; tctx.textAlign = "left"; tctx.textBaseline = "middle"; tctx.fillStyle = "#8e8b83";
     tctx.fillText("34°N", xl + 6, yl);
@@ -806,19 +807,18 @@ function draw() {
     const [x, y] = proj(a[1], a[2]), hi = sel && sel[0] === code;
     if (x < -20 || y < -20 || x > r.width + 20 || y > r.height + 20) continue;
     if (S.zoom < 0.7 && !hi) continue;
-    tctx.fillStyle = hi ? "#161512" : "rgba(22,21,18,.7)"; tctx.beginPath(); tctx.arc(x, y, hi ? 3.5 : 2, 0, 7); tctx.fill();
+    tctx.fillStyle = hi ? "#111111" : "rgba(17,17,17,.7)"; tctx.beginPath(); tctx.arc(x, y, hi ? 3.5 : 2, 0, 7); tctx.fill();
     tctx.font = hi ? `650 12px ${UIF}` : `500 10px ${UIF}`;
-    tctx.lineWidth = 3; tctx.strokeStyle = "rgba(255,253,248,.85)"; tctx.strokeText(code, x + 5, y - 6);
-    tctx.fillStyle = hi ? "#161512" : "rgba(22,21,18,.72)"; tctx.fillText(code, x + 5, y - 6); }
+    tctx.lineWidth = 3; tctx.strokeStyle = "rgba(255,255,255,.85)"; tctx.strokeText(code, x + 5, y - 6);
+    tctx.fillStyle = hi ? "#111111" : "rgba(17,17,17,.72)"; tctx.fillText(code, x + 5, y - 6); }
   const from = M.days[S.sel[0]].date, to = M.days[S.sel[1]].date;
   tctx.font = `600 10px ${UIF}`; tctx.textAlign = "left"; tctx.textBaseline = "middle";
   for (const e of EV) { if (e.date < from || e.date > to) continue; const [x, y] = proj(e.lat, e.lon);
     tctx.save(); tctx.translate(x, y); tctx.rotate(Math.PI / 4); tctx.fillStyle = EV_COLOR; tctx.strokeStyle = "#ffffff"; tctx.lineWidth = 2;
     tctx.strokeRect(-4.5, -4.5, 9, 9); tctx.fillRect(-4.5, -4.5, 9, 9); tctx.restore();
     const t = fmtD(e.date), tw = tctx.measureText(t).width;
-    tctx.fillStyle = "#ffd23f"; tctx.strokeStyle = EV_COLOR; tctx.lineWidth = 1.5;
-    tctx.beginPath(); tctx.roundRect(x + 10, y - 8, tw + 12, 16, 8); tctx.fill(); tctx.stroke();
-    tctx.fillStyle = EV_COLOR; tctx.fillText(t, x + 16, y + 0.5); }
+    tctx.fillStyle = EV_COLOR; tctx.fillRect(x + 10, y - 8, tw + 12, 16);
+    tctx.fillStyle = "#ffffff"; tctx.fillText(t, x + 16, y + 0.5); }
 }
 
 // ---------- legend + stats ----------
@@ -827,7 +827,7 @@ const fmtD = d => new Date(d + "T00:00:00Z").toLocaleDateString(undefined, { mon
 const span = ([a, b]) => a === b ? fmtD(M.days[a].date) : `${fmtD(M.days[a].date)} – ${fmtD(M.days[b].date)}`;
 function stats() { frameLabel(); }
 // Gulf<->Europe corridor counts [west, iraq, iran] summed over days i0..i1 (null if none recorded)
-const CORR = [["West of Iraq", "#b3b0a8", "west of Iraq"], ["Over Iraq", "#e07a2c", "Iraq"], ["Over Iran", "#1f9a86", "Iran"]];
+const CORR = [["West of Iraq", "#d6d4ce", "west of Iraq"], ["Over Iraq", "#111111", "Iraq"], ["Over Iran", "#8a8882", "Iran"]];
 const CORR_SPLITS = [40.1, 45.4];   // longitudes on 34N splitting the buckets: keep equal to SPLITS in pipeline/corridors.py
 function corrSum(i0, i1) { const c = [0, 0, 0]; let any = false;
   for (const d of M.days.slice(i0, i1 + 1)) if (d.corr) { any = true; d.corr.forEach((v, k) => c[k] += v); }
@@ -843,11 +843,9 @@ function timeline() {
   const max = corr ? 1 : Math.max(...M.days.map(d => d.legs)) * 1.05;
   svg.innerHTML = ""; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
   const y = v => pad.t + (H - pad.t - pad.b) * (1 - v / max);
-  for (const t of corr ? [0, 0.5, 1] : [0, max / 2]) { el("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#ece3cf", "stroke-width": 1 }, svg);
-    el("text", { x: pad.l - 8, y: y(t) + 3, "text-anchor": "end", fill: "#807b6e", "font-size": 10 }, svg).textContent = corr ? `${t * 100}%` : Math.round(t).toLocaleString(); }
+  for (const t of corr ? [0, 0.5, 1] : [0, max / 2]) { el("line", { x1: pad.l, x2: W - pad.r, y1: y(t), y2: y(t), stroke: "#e3e2de", "stroke-width": 1 }, svg);
+    el("text", { x: pad.l - 8, y: y(t) + 3, "text-anchor": "end", fill: "#85847f", "font-size": 10 }, svg).textContent = corr ? `${t * 100}%` : Math.round(t).toLocaleString(); }
   const inR = (i, [a, b]) => i >= a && i <= b;
-  if (!corr) el("rect", { x: pad.l + S.sel[0] * bw - 2, y: pad.t - 4, width: (S.sel[1] - S.sel[0] + 1) * bw + 3, height: y(0) - pad.t + 6,
-    fill: "#ffd23f", stroke: "#161512", "stroke-width": 1.5, rx: 5 }, svg);
   M.days.forEach((d, i) => {
     const gapW = bw < 6 ? 0.4 : 1.5, x = pad.l + i * bw + gapW / 3, bwid = Math.max(0.6, bw - gapW);   // thinner gaps on phones
     if (corr) {   // 100% stacked: west at the bottom, then Iraq, then Iran; other weeks faded
@@ -859,15 +857,15 @@ function timeline() {
         const y0 = y(acc / tot), y1 = y((acc + c[k]) / tot); acc += c[k];
         el("rect", { x, y: y1, width: bwid, height: Math.max(0.5, y0 - y1 - (acc < tot ? 1 : 0)), fill: colr }, g); });
     } else {
-      const r = el("rect", { x, y: y(d.legs), width: bwid, height: Math.max(1, y(0) - y(d.legs)), fill: inR(i, S.sel) ? "#161512" : "#e3d7bd", rx: Math.min(1.5, bw / 3) }, svg);
+      const r = el("rect", { x, y: y(d.legs), width: bwid, height: Math.max(1, y(0) - y(d.legs)), fill: inR(i, S.sel) ? "#111111" : "#dcdbd6", rx: 0 }, svg);
       el("title", {}, r).textContent = `${fmtD(d.date)}: ${d.legs.toLocaleString()} flights`;
     }
     const dt = new Date(d.date + "T00:00:00Z");
-    if (dt.getUTCDate() === 1) el("text", { x: pad.l + i * bw, y: H - 3, fill: "#807b6e", "font-size": 10 }, svg).textContent = dt.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" });
+    if (dt.getUTCDate() === 1) el("text", { x: pad.l + i * bw, y: H - 3, fill: "#85847f", "font-size": 10 }, svg).textContent = dt.toLocaleDateString(undefined, { month: "short", timeZone: "UTC" });
   });
   // outline round the week shown, so it reads as a playhead
   el("rect", { x: pad.l + S.sel[0] * bw - 1, y: pad.t - 3, width: (S.sel[1] - S.sel[0] + 1) * bw + 0.5, height: y(0) - pad.t + 5,
-    fill: "none", stroke: "#161512", "stroke-width": corr ? 2 : 0, rx: 3 }, svg);
+    fill: "none", stroke: "#111111", "stroke-width": corr ? 1.5 : 0, rx: 0 }, svg);
   for (const e of EV) { const i = M.days.findIndex(d => d.date === e.date); if (i < 0) continue;
     const t = el("text", { x: pad.l + (i + 0.5) * bw, y: 9, "text-anchor": "middle", fill: EV_COLOR, "font-size": 9 }, svg); t.textContent = "◆";
     el("title", {}, t).textContent = `${fmtD(e.date)}: ${e.title}`; }
@@ -888,12 +886,12 @@ function frameLabel() {
   const flTxt = fl === null ? "" : ` · ${est}${Math.round(fl).toLocaleString()} flights${ap}`;
   const inBase = S.fi < BASE_WEEKS;
   $("frame").innerHTML = `<div class="wk">${span(S.sel)}</div><div class="sub">Week ${S.fi + 1} of ${S.frames.length}${flTxt}</div>` +
-    (S.deltaOn ? `<div class="key"><span><i style="background:rgb(${MORE})"></i>More</span><span><i style="background:rgb(${LESS})"></i>Fewer</span>` +
-      `<span class="vs">${inBase ? "reference weeks" : "than " + span(baseRange())}</span></div>` : "") +
-    (c ? `<div class="corr"><div class="lbl"><span>Gulf ↔ Europe flights</span></div>
+    (S.deltaOn ? `<div class="key sect"><div class="lbl">Change in flights</div><div class="ramp"><span>Fewer</span><i style="background:${RAMP_CSS}"></i><span>More</span></div>` +
+      `<div class="vs">${inBase ? "These are the reference weeks" : "Compared with " + span(baseRange())}</div></div>` : "") +
+    (c ? `<div class="corr sect"><div class="lbl">Gulf ↔ Europe flights</div>
       <div class="bar">${CORR.map(([, colr], k) => c[k] ? `<span style="flex:${c[k]};background:${colr}"></span>` : "").join("")}</div>
       <div class="nums">${CORR.map(([, colr, short], k) => `<span><span class="sw" style="background:${colr}"></span><b>${pct(c[k], tot)}</b> ${short}</span>`).join("")}</div></div>` : "") +
-    (evs.length ? `<div class="evs">${evs.map(e => `<div class="ev">${e.url ? `<a class="d" href="${esc(e.url)}" target="_blank" rel="noopener" title="Source">${fmtD(e.date)} ↗</a>` : `<span class="d">${fmtD(e.date)}</span>`}<span class="t">${esc(e.title)}</span></div>`).join("")}</div>` : "");
+    (evs.length ? `<div class="evs sect">${evs.map(e => `<div class="ev">${e.url ? `<a class="d" href="${esc(e.url)}" target="_blank" rel="noopener" title="Source">${fmtD(e.date)} ↗</a>` : `<span class="d">${fmtD(e.date)}</span>`}<span class="t">${esc(e.title)}</span></div>`).join("")}</div>` : "");
 }
 // weeks are 7-day windows ending on the last day; days before the first full week are left out
 function weekFrames() { const out = []; for (let e = M.days.length - 1; e - 6 >= 0; e -= 7) out.unshift([e - 6, e]); return out; }
